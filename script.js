@@ -324,7 +324,8 @@ $("#trustForm").addEventListener("submit", (e) => {
   win.document.title = "Trust check";
   trustBusy("Verifying…", () => {
     if (win.closed) return;
-    win.location.href = `trust.html?email=${encodeURIComponent(trust.email)}`;
+    const q = new URLSearchParams({ email: trust.email, color: product.colors[state.color].name, size: state.size });
+    win.location.href = `trust.html?${q}`;
     openTrustOverlay(win);
   });
 });

@@ -1,0 +1,225 @@
+/* Trust check chat. Tokens, spacing and motion follow the Personal Store purchase chat:
+   the store's bubbles in blue, the shopper's in grey, on a 4px grid (bubbles in a run 4,
+   a question to its replies 8, one speaker to the other 24), 16px gutters, 36px rows. */
+:root {
+  --app-w: min(100vw, 480px);
+  --text: #000;
+  --muted: #6b6b6b;
+  --bubble-bot: rgba(21, 72, 235, 0.1);
+  --bubble-me: #e8e8e8;
+  --option-border: #e8edfd;
+  --accent: #1548eb;
+  --ask-text: #1a1a1a;
+  --glass-light: rgba(255, 255, 255, 0.85);
+  --chat-gutter: 16px;
+  --chat-row: 36px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --spring-soft: cubic-bezier(0.34, 1.3, 0.64, 1);
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #f4f4f4; color: var(--text); }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+
+.chat {
+  position: fixed;
+  inset: 0;
+  width: var(--app-w);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  animation: intro-fade 220ms var(--ease-out-strong) both;
+}
+
+.chat__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) var(--chat-gutter) 8px calc(var(--chat-gutter) - 8px);
+  border-bottom: 1px solid #f2f2f2;
+}
+.chat__store { font-size: 14px; font-weight: 600; }
+
+.back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--chat-row);
+  padding: 0 8px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: transform 160ms var(--ease-out-strong);
+}
+.back:active { transform: scale(0.96); }
+.back svg { width: 18px; height: 18px; }
+.back--light { color: #fff; }
+
+.chat__log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  /* Clears the ask bar: 52px tall, 16px up, plus 24px of air. */
+  padding: 16px var(--chat-gutter) calc(92px + var(--safe-bottom));
+  scrollbar-width: none;
+}
+.chat__log::-webkit-scrollbar { display: none; }
+
+.msgs { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.msgs--me { align-items: flex-end; }
+
+.bubble {
+  max-width: 80%;
+  min-height: var(--chat-row);
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 20px;
+}
+.bubble--bot { background: var(--bubble-bot); }
+.bubble--me { background: var(--bubble-me); }
+
+/* Photos in the thread: the product the shopper came from, and the store's close-ups. */
+.chat__photo {
+  display: block;
+  width: 112px;
+  height: 140px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #ececec;
+  cursor: zoom-in;
+}
+.photos { display: flex; gap: 8px; }
+.photos .chat__photo { margin: 0; }
+.chat__photo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* A quoted review: the shopper's own, or another shopper's. */
+.review {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: var(--bubble-bot);
+  font-size: 14px;
+  line-height: 20px;
+}
+.review__stars { display: flex; gap: 2px; margin-bottom: 4px; color: var(--accent); }
+.review__stars svg { width: 14px; height: 14px; }
+.review__stars .off { color: rgba(21, 72, 235, 0.25); }
+.review__text { margin: 0; }
+.review__meta { margin: 4px 0 0; font-size: 12px; line-height: 16px; color: var(--muted); }
+
+/* Quick replies: the shopper's answers, waiting on their side of the thread. */
+.options { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: -16px; }
+.option {
+  min-height: var(--chat-row);
+  max-width: 80%;
+  padding: 8px 16px;
+  border: 1px solid var(--option-border);
+  border-radius: 200px;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: right;
+  transition: background-color 200ms ease, border-color 200ms ease, transform 160ms var(--ease-out-strong);
+}
+.option:hover { border-color: var(--accent); }
+.option:active { transform: scale(0.96); }
+.option--done { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* Each message pops out of its tail corner, rising and growing on a soft spring. */
+.enter {
+  transform-origin: 0 100%;
+  animation:
+    msg-fade 200ms var(--ease-out-strong) var(--d, 0ms) both,
+    msg-pop 420ms var(--spring-soft) var(--d, 0ms) both;
+}
+.msgs--me .enter,
+.options .enter { transform-origin: 100% 100%; }
+@keyframes msg-fade { from { opacity: 0; filter: blur(2px); } }
+@keyframes msg-pop { from { transform: translateY(6px) scale(0.95); } }
+@keyframes intro-fade { from { opacity: 0; } }
+
+.bubble--typing { display: flex; align-items: center; gap: 4px; }
+.bubble--typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  animation: typing 1s ease-in-out infinite;
+}
+.bubble--typing span:nth-child(2) { animation-delay: 150ms; }
+.bubble--typing span:nth-child(3) { animation-delay: 300ms; }
+@keyframes typing {
+  0%, 60%, 100% { opacity: 0.4; transform: none; }
+  30% { opacity: 1; transform: translateY(-2px); }
+}
+
+.chat__dock {
+  position: absolute;
+  left: var(--chat-gutter);
+  right: var(--chat-gutter);
+  bottom: calc(16px + var(--safe-bottom));
+}
+.ask {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 20px;
+  border-radius: 100px;
+  background: var(--glass-light);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+.ask__input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--ask-text);
+  font: inherit;
+  font-size: 14px;
+}
+.ask__input::placeholder { color: #4a4a4a; opacity: 1; }
+.ask__btn {
+  flex: none;
+  display: flex;
+  padding: 10px;
+  border-radius: 100px;
+  background: var(--ask-text);
+  color: #fff;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.ask__btn svg { width: 24px; height: 24px; }
+.ask__btn:disabled { opacity: 0.35; cursor: default; }
+.ask__btn:not(:disabled):active { transform: scale(0.94); }
+
+/* Full-screen photo on black. */
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: #000;
+  animation: intro-fade 200ms var(--ease-out-strong) both;
+}
+.viewer[hidden] { display: none; }
+.viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.viewer .back { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .enter, .chat, .viewer { animation: none; }
+  .bubble--typing span { animation: none; }
+}
