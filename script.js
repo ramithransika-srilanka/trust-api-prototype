@@ -318,7 +318,7 @@ function openTrustOverlay(win) {
   trustWin = win;
   trustOverlay.hidden = false;
   document.body.classList.add("trust-overlay-open");
-  $("#trustOverlayFocus").focus();
+  trustOverlay.focus();
   // Hide the overlay whenever the window is closed, however it was closed
   clearInterval(trustWatch);
   trustWatch = setInterval(() => trustWin.closed && closeTrustOverlay(), 500);
@@ -343,12 +343,6 @@ function resetTrust() {
   trustLinks.forEach((l) => (l.tabIndex = -1));
   trustBtn.textContent = "Check trust";
 }
-
-$("#trustOverlayFocus").addEventListener("click", () => trustWin && !trustWin.closed && trustWin.focus());
-$("#trustOverlayCancel").addEventListener("click", () => {
-  if (trustWin && !trustWin.closed) trustWin.close();
-  closeTrustOverlay();
-});
 
 // The trust window reports how it ended before closing
 window.addEventListener("message", (e) => {
