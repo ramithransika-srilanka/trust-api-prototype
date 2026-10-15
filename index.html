@@ -66,6 +66,26 @@
         </div>
         <div class="sizes" id="sizes"></div>
 
+        <form class="trust-form" id="trustForm" novalidate>
+          <div class="trust-step" id="trustEmail" aria-hidden="true">
+            <div class="trust-step-inner">
+              <label for="trustEmailInput">Email address</label>
+              <input type="email" id="trustEmailInput" placeholder="you@example.com" autocomplete="email" tabindex="-1" />
+              <p class="trust-error" id="trustEmailError" role="alert"></p>
+            </div>
+          </div>
+          <div class="trust-step" id="trustCode" aria-hidden="true">
+            <div class="trust-step-inner">
+              <label for="trustCodeInput">Enter the 6-digit code</label>
+              <p class="trust-hint">Sent to <strong id="trustSentTo"></strong> · <button type="button" class="trust-link" id="trustChangeEmail" tabindex="-1">Change email</button></p>
+              <input type="text" id="trustCodeInput" class="trust-code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" tabindex="-1" />
+              <p class="trust-error" id="trustCodeError" role="alert"></p>
+              <p class="trust-hint trust-resend">Didn't get it? <button type="button" class="trust-link" id="trustResend" tabindex="-1">Resend code</button></p>
+            </div>
+          </div>
+          <button type="submit" class="check-trust" id="checkTrust">Check trust</button>
+        </form>
+
         <button class="add-to-cart" id="addToCart">
           Add to cart
           <svg viewBox="0 0 24 24" width="18" height="18"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M8 10l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/></svg>
