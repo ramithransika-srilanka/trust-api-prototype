@@ -297,7 +297,69 @@ $("#trustForm").addEventListener("submit", (e) => {
   const code = trustSteps.code.input.value.trim();
   if (!/^\d{6}$/.test(code)) return setTrustError("code", "Please enter the 6-digit code.");
   setTrustError("code", "");
-  trustBusy("Verifying…", () => toast("Code would be verified here (not connected yet)"));
+  // Open the window inside the click so pop-up blockers allow it; it loads
+  // the trust page once verification finishes.
+  const win = window.open("", "trustCheck", "width=480,height=680");
+  if (!win) return setTrustError("code", "Please allow pop-ups for this site to continue the trust check.");
+  win.document.title = "Trust check";
+  trustBusy("Verifying…", () => {
+    if (win.closed) return;
+    win.location.href = `trust.html?email=${encodeURIComponent(trust.email)}`;
+    openTrustOverlay(win);
+  });
+});
+
+// ---------- Trust check window + overlay ----------
+const trustOverlay = $("#trustOverlay");
+let trustWin = null;
+let trustWatch = null;
+
+function openTrustOverlay(win) {
+  trustWin = win;
+  trustOverlay.hidden = false;
+  document.body.classList.add("trust-overlay-open");
+  $("#trustOverlayFocus").focus();
+  // Hide the overlay whenever the window is closed, however it was closed
+  clearInterval(trustWatch);
+  trustWatch = setInterval(() => trustWin.closed && closeTrustOverlay(), 500);
+}
+
+function closeTrustOverlay() {
+  clearInterval(trustWatch);
+  trustOverlay.hidden = true;
+  document.body.classList.remove("trust-overlay-open");
+  trustWin = null;
+}
+
+function resetTrust() {
+  trust.step = "start";
+  trust.email = "";
+  for (const s of Object.values(trustSteps)) {
+    s.box.classList.remove("open");
+    s.box.setAttribute("aria-hidden", "true");
+    s.input.tabIndex = -1;
+    s.input.value = "";
+  }
+  trustLinks.forEach((l) => (l.tabIndex = -1));
+  trustBtn.textContent = "Check trust";
+}
+
+$("#trustOverlayFocus").addEventListener("click", () => trustWin && !trustWin.closed && trustWin.focus());
+$("#trustOverlayCancel").addEventListener("click", () => {
+  if (trustWin && !trustWin.closed) trustWin.close();
+  closeTrustOverlay();
+});
+
+// The trust window reports how it ended before closing
+window.addEventListener("message", (e) => {
+  if (!trustWin || e.source !== trustWin) return;
+  if (e.data?.type === "trust-complete") {
+    closeTrustOverlay();
+    resetTrust();
+    toast("Trust check complete");
+  } else if (e.data?.type === "trust-cancelled") {
+    closeTrustOverlay();
+  }
 });
 
 for (const step of Object.keys(trustSteps)) {

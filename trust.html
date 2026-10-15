@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trust check</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #f4f4f4;
+      color: #1f1f1f;
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    }
+    header { background: #000; padding: 18px 20px; display: flex; justify-content: center; }
+    header img { height: 18px; display: block; }
+    main { flex: 1; display: grid; place-items: center; padding: 24px 16px; }
+    .card {
+      width: 100%;
+      max-width: 400px;
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    }
+    .badge {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      background: rgba(255, 107, 74, 0.12);
+      color: #ff6b4a;
+      display: grid;
+      place-items: center;
+    }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 700; }
+    p { margin: 0 0 6px; color: #6b6b6b; font-size: 15px; line-height: 1.5; }
+    .email { color: #1f1f1f; font-weight: 600; word-break: break-all; }
+    .note { margin: 18px 0 24px; padding: 12px 14px; background: #f7f7f7; border-radius: 12px; font-size: 13px; }
+    button {
+      width: 100%;
+      height: 52px;
+      border: 0;
+      border-radius: 26px;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .primary { background: #ff6b4a; color: #fff; margin-bottom: 10px; }
+    .secondary { background: transparent; color: #444; text-decoration: underline; height: 40px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header><img src="assets/logo.png" alt="Carnage" /></header>
+  <main>
+    <div class="card">
+      <div class="badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h1>Trust check</h1>
+      <p>Email verified</p>
+      <p class="email" id="email"></p>
+      <p class="note">The trust check continues here. This step is a placeholder until the trust service is connected.</p>
+      <button class="primary" id="finish">Finish trust check</button>
+      <button class="secondary" id="cancel">Cancel and return to the store</button>
+    </div>
+  </main>
+  <script>
+    document.getElementById("email").textContent = new URLSearchParams(location.search).get("email") || "";
+
+    // Tell the product page how the check ended, then close this window
+    function done(type) {
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage({ type }, location.origin === "null" ? "*" : location.origin);
+      }
+      window.close();
+    }
+    document.getElementById("finish").addEventListener("click", () => done("trust-complete"));
+    document.getElementById("cancel").addEventListener("click", () => done("trust-cancelled"));
+  </script>
+</body>
+</html>
