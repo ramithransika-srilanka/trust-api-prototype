@@ -355,9 +355,16 @@ addEventListener("keydown", (e) => e.key === "Escape" && !viewer.hidden && close
   });
   send(
     [
-      t(`Hi! You're verified${shopper.email ? ` as ${shopper.email}` : ""}, so I can see your past orders.`),
-      t(`I'm here to help you decide on the ${PRODUCT.name}. What would you like to know?`),
+      t("Do you want me to run a fit check?"),
+      t("I can compare this shirt with clothes you've bought before and recommend the best fit."),
     ],
-    nextChoices().filter((c) => !c.done),
+    [
+      { label: "Yes", run: () => fitCheck() },
+      {
+        label: "No thanks",
+        run: () =>
+          send([t("No problem. What would you like to know about it?")], nextChoices().filter((c) => !c.done)),
+      },
+    ],
   );
 })();
