@@ -192,6 +192,32 @@ img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit:
 .check-trust:hover,
 .add-to-cart:hover { opacity: 0.88; }
 .check-trust:active { transform: scale(0.98); }
+.check-trust:disabled { opacity: 0.6; cursor: wait; }
+
+/* Email field revealed above Check trust */
+.trust-email {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
+}
+.trust-email.open { grid-template-rows: 1fr; opacity: 1; }
+.trust-email-inner { overflow: hidden; }
+.trust-email label { display: block; font-size: 14px; font-weight: 600; color: #444; margin: 2px 0 8px; }
+.trust-email input {
+  width: 100%;
+  height: 52px;
+  padding: 0 20px;
+  border: 1px solid #ccc;
+  border-radius: 26px;
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.trust-email input:focus { border-color: #ff6b4a; box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.2); }
+.trust-email input[aria-invalid="true"] { border-color: #d93025; }
+.trust-error { margin: 6px 0 10px 4px; min-height: 18px; font-size: 13px; color: #d93025; }
 .add-to-cart:active { transform: scale(0.98); }
 
 .accordion {

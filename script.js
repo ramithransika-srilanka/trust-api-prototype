@@ -228,7 +228,44 @@ $("#signupForm").addEventListener("submit", (e) => {
 });
 
 $(".live-chat").addEventListener("click", () => toast("Live chat is not connected in this prototype"));
-$("#checkTrust").addEventListener("click", () => toast("Trust check is not connected in this prototype"));
+// ---------- Check trust ----------
+// First click reveals the email field and turns the button into "Send OTP";
+// submitting then validates the email (sending is not wired to a backend yet).
+const trust = { open: false };
+const trustEmail = $("#trustEmail");
+const trustInput = $("#trustEmailInput");
+const trustBtn = $("#checkTrust");
+const trustError = $("#trustError");
+
+function setTrustError(msg) {
+  trustError.textContent = msg;
+  trustInput.setAttribute("aria-invalid", msg ? "true" : "false");
+}
+
+$("#trustForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (!trust.open) {
+    trust.open = true;
+    trustEmail.classList.add("open");
+    trustEmail.setAttribute("aria-hidden", "false");
+    trustInput.tabIndex = 0;
+    trustBtn.textContent = "Send OTP";
+    setTimeout(() => trustInput.focus(), 250);
+    return;
+  }
+  const email = trustInput.value.trim();
+  if (!email) return setTrustError("Please enter your email address.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setTrustError("Please enter a valid email address.");
+  setTrustError("");
+  trustBtn.disabled = true;
+  trustBtn.textContent = "Sending…";
+  setTimeout(() => {
+    trustBtn.disabled = false;
+    trustBtn.textContent = "Send OTP";
+    toast(`OTP would be sent to ${email} (not connected yet)`);
+  }, 600);
+});
+trustInput.addEventListener("input", () => trustError.textContent && setTrustError(""));
 
 renderSwatches();
 renderSizes();
