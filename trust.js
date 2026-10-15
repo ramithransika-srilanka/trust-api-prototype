@@ -395,7 +395,7 @@ function closeWith(type) {
   }
   window.close();
 }
-document.getElementById("back").addEventListener("click", () => closeWith("trust-cancelled"));
+document.getElementById("close").addEventListener("click", () => closeWith("trust-cancelled"));
 
 const askForm = document.getElementById("ask");
 const askInput = document.getElementById("askInput");
@@ -431,17 +431,9 @@ log.addEventListener("keydown", (e) => {
 document.getElementById("viewerBack").addEventListener("click", closeViewer);
 addEventListener("keydown", (e) => e.key === "Escape" && !viewer.hidden && closeViewer());
 
-// ---------- Opening: the product the shopper came from, then the store says hello ----------
+// ---------- Opening: straight to the fit check question ----------
 (function open() {
-  const product = group("me");
-  const img = photoEl(photosFor(shopper.color)[0], PRODUCT.name);
-  img.classList.add("enter");
-  product.appendChild(img);
-  [PRODUCT.name, `${shopper.color} · ${shopper.size} · ${PRODUCT.price}`, `From ${PRODUCT.store} Store`].forEach((text, i) => {
-    const b = render({ from: "me", text });
-    b.style.setProperty("--d", `${120 + i * 50}ms`);
-    product.appendChild(b);
-  });
+  document.getElementById("chatProduct").textContent = PRODUCT.name;
   send(
     [
       t("Do you want me to run a fit check?"),

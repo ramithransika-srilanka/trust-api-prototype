@@ -7,18 +7,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="trust.css?v=20261015b" />
+  <link rel="stylesheet" href="trust.css?v=20261015c" />
 </head>
 <body>
   <!-- The store's chat, styled after the Personal Store purchase chat. It only helps the
        shopper decide (fit, past purchase, look and feel, what others say); no checkout. -->
   <div class="chat" role="main" aria-label="Chat with Carnage Store">
     <div class="chat__top">
-      <button class="back" id="back">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 19L8 12L15 5" /></svg>
-        Back
+      <div class="chat__heading">
+        <h1 class="chat__store">Carnage Store</h1>
+        <p class="chat__product" id="chatProduct">Urban Monaco Knit Polo</p>
+      </div>
+      <button class="chat__close" id="close" aria-label="Close chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6L18 18" /></svg>
       </button>
-      <span class="chat__store">Carnage Store</span>
     </div>
 
     <div class="chat__log" id="log" aria-live="polite"></div>
@@ -42,6 +44,6 @@
     <img id="viewerImg" alt="" />
   </div>
 
-  <script src="trust.js?v=20261015b"></script>
+  <script src="trust.js?v=20261015c"></script>
 </body>
 </html>
