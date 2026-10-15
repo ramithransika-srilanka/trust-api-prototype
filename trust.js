@@ -31,12 +31,19 @@ const PAST = {
   review: "Fits well through the shoulders and the collar still sits flat after a lot of washes. Sleeves are a little snug on me.",
 };
 
-// What other shoppers have said since launch.
-const OTHERS = [
-  { rating: 5, text: "Collar sits flat all day, doesn't curl like my other knit polos.", who: "Dinuk, bought M" },
-  { rating: 4, text: "Really soft. The white is slightly sheer in bright sun, so I wear a nude tee under it.", who: "Tharushi, bought S for her partner" },
-  { rating: 5, text: "True to size. Looks smarter than a regular polo for dinners.", who: "Nadeesh, bought L" },
-];
+// What other shoppers have said since launch, summarised (no names). A concern is only
+// mentioned when it is serious; minor ones stay out of the summary.
+const OTHERS = {
+  rating: 4.5,
+  likes: [
+    "The collar sits flat all day and doesn't curl",
+    "Soft, light knit that's comfortable in the heat",
+    "True to size for most people",
+    "Looks smart enough for dinners, not just casual days",
+  ],
+  concerns: [{ text: "The white is slightly see-through in strong sun", serious: false }],
+};
+const seriousConcerns = OTHERS.concerns.filter((c) => c.serious);
 
 const SIZES = ["S", "M", "L", "XL", "XXL"];
 const sizeStep = (size, by) => SIZES[Math.min(SIZES.length - 1, Math.max(0, SIZES.indexOf(size) + by))];
@@ -103,6 +110,24 @@ function render(m) {
     stars.setAttribute("aria-label", `${m.rating} out of 5 stars`);
     stars.innerHTML = [1, 2, 3, 4, 5].map((i) => star(i <= m.rating)).join("");
     card.append(stars, el("p", "review__text", `“${m.text}”`), el("p", "review__meta", m.who));
+    return card;
+  }
+  if (m.kind === "summary") {
+    const card = el("div", "review review--summary enter");
+    const stars = el("div", "review__stars");
+    stars.setAttribute("aria-label", `Rated ${m.rating} out of 5`);
+    stars.innerHTML = [1, 2, 3, 4, 5].map((i) => star(i <= Math.round(m.rating))).join("");
+    stars.appendChild(el("span", "review__score", `${m.rating} from early reviews`));
+    card.appendChild(stars);
+    const section = (title, items, cls) => {
+      if (!items.length) return;
+      card.appendChild(el("p", "review__heading", title));
+      const ul = el("ul", `review__list ${cls}`);
+      items.forEach((i) => ul.appendChild(el("li", "", i)));
+      card.appendChild(ul);
+    };
+    section("What people like", m.likes, "review__list--good");
+    section("Worth knowing", m.concerns, "review__list--bad");
     return card;
   }
   return el("p", `bubble bubble--${m.from} enter`, m.text);
@@ -253,9 +278,9 @@ function othersSay() {
   covered.add("others");
   send(
     [
-      t("It only launched last week, so there are just a handful of reviews so far, but they're positive."),
-      ...OTHERS.map((r) => ({ kind: "review", ...r })),
-      t("The main thing people mention is the collar staying flat. A couple said the white is a little sheer in strong sun."),
+      t("It only launched last week, so there are just a few reviews so far. Here's the gist:"),
+      { kind: "summary", rating: OTHERS.rating, likes: OTHERS.likes, concerns: seriousConcerns.map((c) => c.text) },
+      t(seriousConcerns.length ? "Mostly positive, but keep that in mind." : "So far, nobody has reported a real problem with it."),
       t("Anything else you'd like to know?"),
     ],
     nextChoices(),

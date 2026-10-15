@@ -117,6 +117,30 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .review__stars .off { color: rgba(21, 72, 235, 0.25); }
 .review__text { margin: 0; }
 .review__meta { margin: 4px 0 0; font-size: 12px; line-height: 16px; color: var(--muted); }
+.review__stars { align-items: center; }
+.review__score { margin-left: 6px; font-size: 12px; line-height: 16px; color: var(--muted); }
+.review__heading { margin: 8px 0 4px; font-size: 13px; font-weight: 600; }
+.review__list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.review__list li { position: relative; padding-left: 20px; }
+.review__list li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  background: currentColor;
+  -webkit-mask: var(--mark) center / contain no-repeat;
+  mask: var(--mark) center / contain no-repeat;
+}
+.review__list--good li::before {
+  color: var(--accent);
+  --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5L10 17.5L19 7'/%3E%3C/svg%3E");
+}
+.review__list--bad li::before {
+  color: #c2410c;
+  --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M12 6v8M12 18h.01'/%3E%3C/svg%3E");
+}
 
 /* Quick replies: the shopper's answers, waiting on their side of the thread. */
 .options { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: -16px; }
