@@ -19,3 +19,6 @@ python3 -m http.server 8000
 Photos live in `assets/products/` and the logo in `assets/logo.png`. Image paths are set in `script.js`: an `images` array (front, lifestyle, detail, back) on each colour in `product.colors`, and an `image` on each item in `related`.
 
 Each image sits on top of an SVG garment illustration, which shows if the file is missing. Products without an `image` (Riviera and Monaco Rib) use the illustration as their card image.
+
+## Caching
+The CSS and JS links in `index.html` and `trust.html` carry a version (`?v=…`). Change it whenever those files change, so browsers load the new files with the new page instead of a cached older copy.
