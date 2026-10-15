@@ -16,4 +16,9 @@ python3 -m http.server 8000
 - Floating live-chat button, add-to-cart toast, mobile layout (hamburger menu, swipeable gallery)
 
 ## Images
-Product imagery is rendered as SVG garment illustrations. To use real photos, add an `images` array (front, lifestyle, detail, back) to each colour in `product.colors`, or an `image` URL to each item in `related`, in `script.js`.
+Photos live in `assets/products/` and the logo in `assets/logo.png`. Image paths are set in `script.js`: an `images` array (front, lifestyle, detail, back) on each colour in `product.colors`, and an `image` on each item in `related`.
+
+Each image sits on top of an SVG garment illustration. If a file is missing, the illustration shows instead. These paths are referenced but the files aren't added yet:
+- `assets/products/urban-classic-black.webp`
+- `assets/products/urban-stripe-black.webp`
+- `assets/products/luxe-olive.webp`

@@ -12,9 +12,10 @@
 <body>
   <!-- Header -->
   <header class="site-header">
-    <a href="#" class="logo" aria-label="Home">CARNAGE</a>
+    <a href="#" class="logo" aria-label="Home"><img src="assets/logo.png" alt="Carnage" /></a>
     <button class="menu-toggle" aria-label="Open menu" aria-expanded="false">
-      <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      <svg class="icon-open" viewBox="0 0 24 24" width="24" height="24"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      <svg class="icon-close" viewBox="0 0 24 24" width="24" height="24"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" fill="none"/></svg>
     </button>
     <nav class="main-nav" aria-label="Main">
       <a href="#">Women</a>
@@ -40,7 +41,10 @@
   <main>
     <!-- Product -->
     <section class="product">
-      <div class="gallery" id="gallery"></div>
+      <div class="gallery-wrap">
+        <div class="gallery" id="gallery"></div>
+        <div class="gallery-dots" id="galleryDots"></div>
+      </div>
 
       <aside class="product-info">
         <h1 class="product-title">Urban Monaco Knit Polo</h1>
@@ -108,7 +112,7 @@
 
   <!-- Footer -->
   <footer class="site-footer">
-    <svg class="footer-wordmark" viewBox="0 0 1000 150" aria-hidden="true"><text x="0" y="132" textLength="1000" lengthAdjust="spacingAndGlyphs">CARNAGE</text></svg>
+    <img class="footer-wordmark" src="assets/logo.png" alt="" aria-hidden="true" />
 
     <div class="footer-grid">
       <div class="signup">
@@ -143,8 +147,16 @@
 
   <button class="live-chat">
     <svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 5h16v11H9l-5 4z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>
-    Live chat
+    <span>Live chat</span>
   </button>
+
+  <div class="mobile-buy" id="mobileBuy" aria-hidden="true">
+    <div class="mobile-buy-info">
+      <span class="mobile-buy-name">Urban Monaco Knit Polo</span>
+      <span class="mobile-buy-meta" id="mobileBuyMeta">LKR 6,450.00 · Sheer White / S</span>
+    </div>
+    <button class="add-to-cart" id="mobileAddToCart" tabindex="-1">Add to cart</button>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
