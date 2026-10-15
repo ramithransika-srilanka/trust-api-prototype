@@ -358,7 +358,6 @@ function showTruthRow() {
   foldTrustSteps();
   trustBtn.hidden = true;
   truthRow.hidden = false;
-  truthOpen.focus();
 }
 
 // The first time, the product page is covered by the overlay until the shopper is back;

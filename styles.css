@@ -212,6 +212,11 @@ img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit:
 .check-trust[hidden] { display: none; }
 .trust-status { margin: 0 0 0 4px; font-size: 13px; line-height: 1.4; color: var(--muted); }
 .trust-status:empty { display: none; }
+/* No dark default outline on the coral buttons; keyboard focus gets a soft coral ring. */
+.check-trust:focus,
+.truth-mic:focus { outline: none; }
+.check-trust:focus-visible,
+.truth-mic:focus-visible { box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.35); }
 .check-trust__avatar {
   flex: none;
   width: 32px;
