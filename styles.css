@@ -381,7 +381,7 @@ img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit:
   font-size: 21px;
   text-transform: uppercase;
 }
-.copyright { justify-self: end; margin: 0; color: #888; font-size: 14px; padding-right: 160px; }
+.copyright { justify-self: end; margin: 0; color: #888; font-size: 14px; }
 
 /* ---------- Trust check overlay ---------- */
 .trust-overlay {
@@ -413,21 +413,6 @@ img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit:
 body.trust-overlay-open { overflow: hidden; }
 
 /* ---------- Floating ---------- */
-.live-chat {
-  position: fixed;
-  right: 26px;
-  bottom: 26px;
-  z-index: 60;
-  background: #6b6b6b;
-  color: var(--white);
-  padding: 16px 20px;
-  border-radius: 14px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  font-size: 16px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-}
 .toast {
   position: fixed;
   left: 50%;
@@ -485,7 +470,6 @@ body.trust-overlay-open { overflow: hidden; }
   .main-nav.open { transform: translateX(0); }
   .main-nav a { padding: 18px 0; border-bottom: 1px solid #222; font-size: 22px; font-style: italic; font-weight: 900; }
   body.menu-open { overflow: hidden; }
-  body.menu-open .live-chat,
   body.menu-open .mobile-buy { display: none; }
 
   /* Product */
@@ -564,11 +548,6 @@ body.trust-overlay-open { overflow: hidden; }
   .tagline { font-size: 18px; }
   .copyright { justify-self: center; padding-right: 0; font-size: 12px; }
 
-  /* Live chat collapses to an icon */
-  .live-chat { right: 14px; bottom: 14px; width: 48px; height: 48px; padding: 0; border-radius: 50%; justify-content: center; transition: bottom 0.25s; }
-  .live-chat span { display: none; }
-  .live-chat svg { width: 20px; height: 20px; }
-
   /* Sticky buy bar once the main button scrolls away */
   .mobile-buy {
     display: flex;
@@ -591,6 +570,5 @@ body.trust-overlay-open { overflow: hidden; }
   .mobile-buy-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mobile-buy-meta { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mobile-buy .add-to-cart { width: auto; height: 44px; padding: 0 22px; font-size: 13px; flex-shrink: 0; }
-  body.buybar-on .live-chat { bottom: 82px; }
   body.buybar-on .toast.show { transform: translate(-50%, -64px); }
 }

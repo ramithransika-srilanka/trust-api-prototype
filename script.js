@@ -227,7 +227,6 @@ $("#signupForm").addEventListener("submit", (e) => {
   $("#signupMsg").hidden = false;
 });
 
-$(".live-chat").addEventListener("click", () => toast("Live chat is not connected in this prototype"));
 // ---------- Check trust ----------
 // Steps: "start" (Check trust) -> "email" (Send OTP) -> "code" (Verify).
 // Sending and verifying are placeholders until a backend is connected.
@@ -320,8 +319,8 @@ $("#trustForm").addEventListener("submit", (e) => {
   // Open the window inside the click so pop-up blockers allow it; it loads
   // the trust page once verification finishes.
   const win = window.open("", "trustCheck", "width=480,height=680");
-  if (!win) return setTrustError("code", "Please allow pop-ups for this site to continue the trust check.");
-  win.document.title = "Trust check";
+  if (!win) return setTrustError("code", "Please allow pop-ups for this site to continue the truth check.");
+  win.document.title = "Check the truth";
   trustBusy("Verifying…", () => {
     if (win.closed) return;
     const q = new URLSearchParams({ email: trust.email, color: product.colors[state.color].name, size: state.size });
@@ -371,7 +370,7 @@ window.addEventListener("message", (e) => {
   if (e.data?.type === "trust-complete") {
     closeTrustOverlay();
     resetTrust();
-    toast("Trust check complete");
+    toast("Truth check complete");
   } else if (e.data?.type === "trust-cancelled") {
     closeTrustOverlay();
   }
