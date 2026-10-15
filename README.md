@@ -18,7 +18,4 @@ python3 -m http.server 8000
 ## Images
 Photos live in `assets/products/` and the logo in `assets/logo.png`. Image paths are set in `script.js`: an `images` array (front, lifestyle, detail, back) on each colour in `product.colors`, and an `image` on each item in `related`.
 
-Each image sits on top of an SVG garment illustration. If a file is missing, the illustration shows instead. These paths are referenced but the files aren't added yet:
-- `assets/products/urban-classic-black.webp`
-- `assets/products/urban-stripe-black.webp`
-- `assets/products/luxe-olive.webp`
+Each image sits on top of an SVG garment illustration, which shows if the file is missing. Products without an `image` (Urban Classic, Urban Stripe, Luxe, Riviera and Monaco Rib) use the illustration as their card image.
