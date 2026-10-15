@@ -151,6 +151,9 @@ function render(m) {
 
 let busy = Promise.resolve();
 let typingEl = null;
+// The conversation plays itself: the shopper's side answers on its own (see AUTOPLAY).
+// It stops as soon as the shopper types, and the chat waits on them from then on.
+let auto = true;
 
 // The store sends its messages one by one, "typing" before each, then offers replies.
 function send(messages, choices) {
@@ -188,6 +191,8 @@ function clearChoices() {
 }
 function showChoices(choices) {
   clearChoices();
+  // While the chat plays itself, only the final way out is shown.
+  if (auto && !choices.some((c) => c.final)) return;
   choiceRow = el("div", "options");
   choiceRow.setAttribute("role", "group");
   choiceRow.setAttribute("aria-label", "Replies");
@@ -359,7 +364,7 @@ function durability() {
 
 function finish() {
   send([t("Glad I could help. Your product page is ready whenever you are.")], [
-    { label: "Back to the product", done: true, run: () => closeWith("trust-complete") },
+    { label: "Back to the product", done: true, final: true, run: () => closeWith("trust-complete") },
   ]);
 }
 
@@ -395,7 +400,7 @@ function closeWith(type) {
   }
   window.close();
 }
-document.getElementById("back").addEventListener("click", () => closeWith("trust-cancelled"));
+document.getElementById("close").addEventListener("click", () => closeWith("trust-cancelled"));
 
 const askForm = document.getElementById("ask");
 const askInput = document.getElementById("askInput");
@@ -405,6 +410,7 @@ askForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const text = askInput.value.trim();
   if (!text) return;
+  stopAutoplay();
   askInput.value = "";
   askSend.disabled = true;
   say(text);
@@ -431,17 +437,9 @@ log.addEventListener("keydown", (e) => {
 document.getElementById("viewerBack").addEventListener("click", closeViewer);
 addEventListener("keydown", (e) => e.key === "Escape" && !viewer.hidden && closeViewer());
 
-// ---------- Opening: the product the shopper came from, then the store says hello ----------
+// ---------- Opening: straight to the fit check question ----------
 (function open() {
-  const product = group("me");
-  const img = photoEl(photosFor(shopper.color)[0], PRODUCT.name);
-  img.classList.add("enter");
-  product.appendChild(img);
-  [PRODUCT.name, `${shopper.color} · ${shopper.size} · ${PRODUCT.price}`, `From ${PRODUCT.store} Store`].forEach((text, i) => {
-    const b = render({ from: "me", text });
-    b.style.setProperty("--d", `${120 + i * 50}ms`);
-    product.appendChild(b);
-  });
+  document.getElementById("chatProduct").textContent = PRODUCT.name;
   send(
     [
       t("Do you want me to run a fit check?"),
@@ -456,4 +454,51 @@ addEventListener("keydown", (e) => e.key === "Escape" && !viewer.hidden && close
       },
     ],
   );
+})();
+
+// ---------- Autoplay: the shopper's side of the conversation ----------
+// Each reply waits for the store to finish, reads for a moment, "types", then sends.
+const SHOPPER_READ_MS = 900;
+const SHOPPER_TYPE_MS = 800;
+const AUTOPLAY = [
+  { text: "Yes", run: () => fitCheck() },
+  { text: "It was a bit tight", run: () => fitAdvice(1) },
+  { text: "How did I rate it back then?", run: () => pastReview() },
+  { text: "How does this one look and feel?", run: () => lookAndFeel() },
+  { text: "What are others saying about it?", run: () => othersSay() },
+  { text: "Is it genuine? Can I trust the seller?", run: () => trustSeller() },
+  { text: "Yes, show me", run: () => sellerRecord() },
+  { text: "Is it durable?", run: () => durability() },
+  { text: "That's all I needed, thanks", run: () => finish() },
+];
+
+let shopperTyping = null;
+function stopAutoplay() {
+  auto = false;
+  shopperTyping?.remove();
+  shopperTyping = null;
+}
+
+(async function autoplay() {
+  for (const step of AUTOPLAY) {
+    // Wait until the store has said everything queued so far.
+    let pending;
+    do {
+      pending = busy;
+      await pending;
+    } while (pending !== busy);
+    await wait(SHOPPER_READ_MS);
+    if (!auto) return;
+    shopperTyping = el("p", "bubble bubble--me bubble--typing enter");
+    shopperTyping.setAttribute("aria-label", "Typing");
+    shopperTyping.innerHTML = "<span></span><span></span><span></span>";
+    group("me").appendChild(shopperTyping);
+    scrollDown();
+    await wait(SHOPPER_TYPE_MS);
+    if (!auto) return;
+    shopperTyping.remove();
+    shopperTyping = null;
+    say(step.text);
+    step.run();
+  }
 })();
