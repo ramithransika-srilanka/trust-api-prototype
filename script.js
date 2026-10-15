@@ -298,6 +298,13 @@ $("#trustForm").addEventListener("submit", (e) => {
 
   if (trust.step === "start") return showTrustStep("email");
 
+  if (trust.step === "checked") {
+    const win = openTruthWindow();
+    if (win) showTruthChat(win, { overlay: false });
+    else toast("Please allow pop-ups for this site to open the truth check again.");
+    return;
+  }
+
   if (trust.step === "email") {
     const email = trustSteps.email.input.value.trim();
     if (!email) return setTrustError("email", "Please enter your email address.");
@@ -316,18 +323,41 @@ $("#trustForm").addEventListener("submit", (e) => {
     return setTrustError("code", "That code isn't right. Check your email and try again.");
   }
   setTrustError("code", "");
-  // Open the window inside the click so pop-up blockers allow it; it loads
-  // the trust page once verification finishes.
-  const win = window.open("", "trustCheck", "width=480,height=680");
+  const win = openTruthWindow();
   if (!win) return setTrustError("code", "Please allow pop-ups for this site to continue the truth check.");
-  win.document.title = "Check the truth";
-  trustBusy("Verifying…", () => {
-    if (win.closed) return;
-    const q = new URLSearchParams({ email: trust.email, color: product.colors[state.color].name, size: state.size });
-    win.location.href = `trust.html?${q}`;
-    openTrustOverlay(win);
-  });
+  trustBusy("Verifying…", () => showTruthChat(win));
 });
+
+// Opened inside the click so pop-up blockers allow it; the chat loads into it afterwards.
+function openTruthWindow() {
+  const win = window.open("", "trustCheck", "width=480,height=680");
+  if (win) win.document.title = "Check the truth";
+  return win;
+}
+
+// The first time, the product page is covered by the overlay until the shopper is back.
+// Reopening from "Truth checked" just opens the chat, with no overlay.
+function showTruthChat(win, { overlay = true } = {}) {
+  if (win.closed) return;
+  const q = new URLSearchParams({ email: trust.email, color: product.colors[state.color].name, size: state.size });
+  win.location.href = `trust.html?${q}`;
+  if (overlay) openTrustOverlay(win);
+}
+
+// Back on the product page after the chat: the form folds away and the button says so.
+// The shopper is already verified, so the button opens the chat again directly.
+const TICK = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12.5L10 17.5L19 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function markTruthChecked() {
+  trust.step = "checked";
+  for (const s of Object.values(trustSteps)) {
+    s.box.classList.remove("open");
+    s.box.setAttribute("aria-hidden", "true");
+    s.input.tabIndex = -1;
+  }
+  trustLinks.forEach((l) => (l.tabIndex = -1));
+  trustBtn.classList.add("is-checked");
+  trustBtn.innerHTML = `${TICK}<span>Truth checked</span>`;
+}
 
 // ---------- Trust check window + overlay ----------
 const trustOverlay = $("#trustOverlay");
@@ -349,19 +379,7 @@ function closeTrustOverlay() {
   trustOverlay.hidden = true;
   document.body.classList.remove("trust-overlay-open");
   trustWin = null;
-}
-
-function resetTrust() {
-  trust.step = "start";
-  trust.email = "";
-  for (const s of Object.values(trustSteps)) {
-    s.box.classList.remove("open");
-    s.box.setAttribute("aria-hidden", "true");
-    s.input.tabIndex = -1;
-    s.input.value = "";
-  }
-  trustLinks.forEach((l) => (l.tabIndex = -1));
-  trustBtn.textContent = "Check the truth";
+  markTruthChecked();
 }
 
 // The trust window reports how it ended before closing
@@ -369,7 +387,6 @@ window.addEventListener("message", (e) => {
   if (!trustWin || e.source !== trustWin) return;
   if (e.data?.type === "trust-complete") {
     closeTrustOverlay();
-    resetTrust();
     toast("Truth check complete");
   } else if (e.data?.type === "trust-cancelled") {
     closeTrustOverlay();
