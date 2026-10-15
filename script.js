@@ -229,43 +229,87 @@ $("#signupForm").addEventListener("submit", (e) => {
 
 $(".live-chat").addEventListener("click", () => toast("Live chat is not connected in this prototype"));
 // ---------- Check trust ----------
-// First click reveals the email field and turns the button into "Send OTP";
-// submitting then validates the email (sending is not wired to a backend yet).
-const trust = { open: false };
-const trustEmail = $("#trustEmail");
-const trustInput = $("#trustEmailInput");
+// Steps: "start" (Check trust) -> "email" (Send OTP) -> "code" (Verify).
+// Sending and verifying are placeholders until a backend is connected.
+const trust = { step: "start", email: "" };
 const trustBtn = $("#checkTrust");
-const trustError = $("#trustError");
+const trustSteps = {
+  email: { box: $("#trustEmail"), input: $("#trustEmailInput"), error: $("#trustEmailError"), label: "Send OTP" },
+  code: { box: $("#trustCode"), input: $("#trustCodeInput"), error: $("#trustCodeError"), label: "Verify" },
+};
+const trustLinks = [$("#trustChangeEmail"), $("#trustResend")];
 
-function setTrustError(msg) {
-  trustError.textContent = msg;
-  trustInput.setAttribute("aria-invalid", msg ? "true" : "false");
+function setTrustError(step, msg) {
+  const { input, error } = trustSteps[step];
+  error.textContent = msg;
+  input.setAttribute("aria-invalid", msg ? "true" : "false");
+}
+
+function showTrustStep(step) {
+  trust.step = step;
+  for (const [name, s] of Object.entries(trustSteps)) {
+    const on = name === step;
+    s.box.classList.toggle("open", on);
+    s.box.setAttribute("aria-hidden", on ? "false" : "true");
+    s.input.tabIndex = on ? 0 : -1;
+  }
+  trustLinks.forEach((l) => (l.tabIndex = step === "code" ? 0 : -1));
+  trustBtn.textContent = trustSteps[step].label;
+  setTimeout(() => trustSteps[step].input.focus(), 250);
+}
+
+// Fake a network call: show a busy label, then run the callback
+function trustBusy(label, done) {
+  trustBtn.disabled = true;
+  trustBtn.textContent = label;
+  setTimeout(() => {
+    trustBtn.disabled = false;
+    trustBtn.textContent = trustSteps[trust.step].label;
+    done();
+  }, 600);
+}
+
+function sendOtp() {
+  trustBusy("Sending…", () => {
+    $("#trustSentTo").textContent = trust.email;
+    $("#trustCodeInput").value = "";
+    setTrustError("code", "");
+    showTrustStep("code");
+    toast(`Code would be sent to ${trust.email} (not connected yet)`);
+  });
 }
 
 $("#trustForm").addEventListener("submit", (e) => {
   e.preventDefault();
-  if (!trust.open) {
-    trust.open = true;
-    trustEmail.classList.add("open");
-    trustEmail.setAttribute("aria-hidden", "false");
-    trustInput.tabIndex = 0;
-    trustBtn.textContent = "Send OTP";
-    setTimeout(() => trustInput.focus(), 250);
-    return;
+  if (trustBtn.disabled) return;
+
+  if (trust.step === "start") return showTrustStep("email");
+
+  if (trust.step === "email") {
+    const email = trustSteps.email.input.value.trim();
+    if (!email) return setTrustError("email", "Please enter your email address.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setTrustError("email", "Please enter a valid email address.");
+    setTrustError("email", "");
+    trust.email = email;
+    return sendOtp();
   }
-  const email = trustInput.value.trim();
-  if (!email) return setTrustError("Please enter your email address.");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setTrustError("Please enter a valid email address.");
-  setTrustError("");
-  trustBtn.disabled = true;
-  trustBtn.textContent = "Sending…";
-  setTimeout(() => {
-    trustBtn.disabled = false;
-    trustBtn.textContent = "Send OTP";
-    toast(`OTP would be sent to ${email} (not connected yet)`);
-  }, 600);
+
+  const code = trustSteps.code.input.value.trim();
+  if (!/^\d{6}$/.test(code)) return setTrustError("code", "Please enter the 6-digit code.");
+  setTrustError("code", "");
+  trustBusy("Verifying…", () => toast("Code would be verified here (not connected yet)"));
 });
-trustInput.addEventListener("input", () => trustError.textContent && setTrustError(""));
+
+for (const step of Object.keys(trustSteps)) {
+  trustSteps[step].input.addEventListener("input", () => trustSteps[step].error.textContent && setTrustError(step, ""));
+}
+// Keep the code field digits-only
+trustSteps.code.input.addEventListener("input", (e) => {
+  const digits = e.target.value.replace(/\D/g, "").slice(0, 6);
+  if (digits !== e.target.value) e.target.value = digits;
+});
+$("#trustChangeEmail").addEventListener("click", () => showTrustStep("email"));
+$("#trustResend").addEventListener("click", () => !trustBtn.disabled && sendOtp());
 
 renderSwatches();
 renderSizes();
