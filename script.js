@@ -232,6 +232,8 @@ $(".live-chat").addEventListener("click", () => toast("Live chat is not connecte
 // Steps: "start" (Check trust) -> "email" (Send OTP) -> "code" (Verify).
 // Sending and verifying are placeholders until a backend is connected.
 const trust = { step: "start", email: "" };
+// Demo code accepted until the trust service is connected
+const TRUST_DEMO_CODE = "111111";
 const trustBtn = $("#checkTrust");
 // The code is typed into six single-digit boxes; this wraps them so the
 // steps below can treat them like one input.
@@ -308,6 +310,12 @@ $("#trustForm").addEventListener("submit", (e) => {
 
   const code = trustSteps.code.input.value.trim();
   if (!/^\d{6}$/.test(code)) return setTrustError("code", "Please enter the 6-digit code.");
+  if (code !== TRUST_DEMO_CODE) {
+    // Clear the boxes so the shopper can type the code again straight away
+    codeField.value = "";
+    codeBoxes[0].focus();
+    return setTrustError("code", "That code isn't right. Check your email and try again.");
+  }
   setTrustError("code", "");
   // Open the window inside the click so pop-up blockers allow it; it loads
   // the trust page once verification finishes.
@@ -371,11 +379,11 @@ window.addEventListener("message", (e) => {
 for (const step of Object.keys(trustSteps)) {
   trustSteps[step].input.addEventListener("input", () => trustSteps[step].error.textContent && setTrustError(step, ""));
 }
-// Fill digits into the boxes starting at `from`, then focus the next empty box
+// Fill digits into the boxes starting at `from`, then focus the box after them
 function fillCode(from, digits) {
   digits.split("").forEach((d, k) => codeBoxes[from + k] && (codeBoxes[from + k].value = d));
   if (trustSteps.code.error.textContent) setTrustError("code", "");
-  codeField.focus();
+  codeBoxes[Math.min(from + digits.length, codeBoxes.length - 1)].focus();
 }
 codeBoxes.forEach((box, i) => {
   box.addEventListener("input", () => {

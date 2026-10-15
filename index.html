@@ -69,25 +69,35 @@
         <form class="trust-form" id="trustForm" novalidate>
           <div class="trust-step" id="trustEmail" aria-hidden="true">
             <div class="trust-step-inner">
-              <label for="trustEmailInput">Email address</label>
-              <input type="email" id="trustEmailInput" placeholder="you@example.com" autocomplete="email" tabindex="-1" />
-              <p class="trust-error" id="trustEmailError" role="alert"></p>
+              <div class="trust-step-body">
+                <label for="trustEmailInput">Email address</label>
+                <div class="trust-control">
+                  <input type="email" id="trustEmailInput" placeholder="you@example.com" autocomplete="email" tabindex="-1" />
+                  <p class="trust-error" id="trustEmailError" role="alert"></p>
+                </div>
+              </div>
             </div>
           </div>
           <div class="trust-step" id="trustCode" aria-hidden="true">
             <div class="trust-step-inner">
-              <label for="trustCode1" id="trustCodeLabel">Enter the 6-digit code</label>
-              <p class="trust-hint">Sent to <strong id="trustSentTo"></strong> · <button type="button" class="trust-link" id="trustChangeEmail" tabindex="-1">Change email</button></p>
-              <div class="otp-boxes" role="group" aria-labelledby="trustCodeLabel">
-                <input type="text" class="otp-box" id="trustCode1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" placeholder=" " aria-label="Digit 1" tabindex="-1" />
-                <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 2" tabindex="-1" />
-                <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 3" tabindex="-1" />
-                <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 4" tabindex="-1" />
-                <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 5" tabindex="-1" />
-                <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 6" tabindex="-1" />
+              <div class="trust-step-body">
+                <div class="trust-field-head">
+                  <label for="trustCode1" id="trustCodeLabel">Enter the 6-digit code</label>
+                  <p class="trust-hint">Sent to <strong id="trustSentTo"></strong> · <button type="button" class="trust-link" id="trustChangeEmail" tabindex="-1">Change email</button></p>
+                </div>
+                <div class="trust-control">
+                  <div class="otp-boxes" role="group" aria-labelledby="trustCodeLabel">
+                    <input type="text" class="otp-box" id="trustCode1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" placeholder=" " aria-label="Digit 1" tabindex="-1" />
+                    <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 2" tabindex="-1" />
+                    <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 3" tabindex="-1" />
+                    <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 4" tabindex="-1" />
+                    <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 5" tabindex="-1" />
+                    <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 6" tabindex="-1" />
+                  </div>
+                  <p class="trust-error" id="trustCodeError" role="alert"></p>
+                </div>
+                <p class="trust-hint">Didn't get it? <button type="button" class="trust-link" id="trustResend" tabindex="-1">Resend code</button></p>
               </div>
-              <p class="trust-error" id="trustCodeError" role="alert"></p>
-              <p class="trust-hint trust-resend">Didn't get it? <button type="button" class="trust-link" id="trustResend" tabindex="-1">Resend code</button></p>
             </div>
           </div>
           <button type="submit" class="check-trust" id="checkTrust">Check trust</button>
