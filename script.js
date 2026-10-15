@@ -1,0 +1,192 @@
+// ---------- Data ----------
+// To use real photography, add an `images` array (4 URLs) to a color, or an
+// `image` URL to a related product; the SVG illustrations are fallbacks.
+const product = {
+  colors: [
+    { name: "Sheer White", body: "#f3f1ec", trim: "#141414" },
+    { name: "Jet Black", body: "#1b1b1b", trim: "#f3f1ec" },
+  ],
+  sizes: ["S", "M", "L", "XL", "XXL"],
+  soldOut: { "Jet Black": ["XXL"] },
+};
+
+const related = [
+  { name: "Urban Edge Knit Polo", variant: "Navy", price: 6450, body: "#f3f1ec", trim: "#f3f1ec", sleeve: "#1d2c57", stripes: "#1d2c57", polo: true,
+    swatches: ["#1d3461", "#f5f5f5", "#4e8a1e", "#7a2e3a", "#1b1b1b", "#ededed"] },
+  { name: "Urban Classic Knit Polo", variant: "Jet Black", price: 5950, body: "#1b1b1b", trim: "#1b1b1b", sleeveBand: "#f3f1ec", polo: true, zip: true,
+    swatches: ["#1b1b1b", "#f5f5f5", "#f0f0f0", "#9aa1b1", "#4e8a1e", "#1d3461"] },
+  { name: "Urban Stripe Knit Tee", variant: "Jet Black", price: 5950, body: "#1b1b1b", trim: "#1b1b1b", stripes: "#f3f1ec",
+    swatches: ["#1b1b1b", "#3a3f55", "#f5f5f5", "#1d3461"] },
+  { name: "Luxe Knit Polo", variant: "Olive", price: 6250, body: "#5d6644", trim: "#5d6644", polo: true, texture: true,
+    swatches: ["#4e8a1e", "#1b1b1b", "#6b4a35"] },
+  { name: "Riviera Knit Polo", variant: "Sand", price: 6450, body: "#d8c7a8", trim: "#3b2f25", polo: true,
+    swatches: ["#d8c7a8", "#1b1b1b", "#f5f5f5"] },
+  { name: "Monaco Rib Tee", variant: "Stone", price: 5450, body: "#b9b4ab", trim: "#b9b4ab", texture: true,
+    swatches: ["#b9b4ab", "#1b1b1b", "#1d3461"] },
+];
+
+const fmt = (n) => "LKR " + n.toLocaleString("en-US", { minimumFractionDigits: 2 });
+
+// ---------- SVG garment illustrations ----------
+let uid = 0;
+function garment(opts, view = "front", fit = "slice") {
+  const { body, trim, sleeve = body, stripes, sleeveBand, polo = true, zip, texture, bg = "#e8e8e8" } = opts;
+  const id = "g" + uid++;
+  const shirt = "M150 70 L210 52 Q240 78 270 52 L330 70 L400 140 L360 185 L335 165 L335 380 L145 380 L145 165 L120 185 L80 140 Z";
+  const sleeves = "M150 70 L80 140 L120 185 L145 165 Z M330 70 L400 140 L360 185 L335 165 Z";
+  const defs = `<defs>
+      <clipPath id="${id}c"><path d="${shirt}"/></clipPath>
+      <pattern id="${id}t" width="8" height="8" patternUnits="userSpaceOnUse">
+        <circle cx="4" cy="4" r="1.3" fill="#000" opacity="0.18"/></pattern>
+      <linearGradient id="${id}s" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity="0.12"/>
+        <stop offset="0.5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.14"/></linearGradient>
+    </defs>`;
+
+  const stripeEls = stripes
+    ? `<g clip-path="url(#${id}c)" fill="${stripes}">
+        <rect x="190" y="40" width="14" height="360"/><rect x="214" y="40" width="7" height="360"/>
+        <rect x="262" y="40" width="7" height="360"/><rect x="279" y="40" width="14" height="360"/></g>`
+    : "";
+  const bandEls = sleeveBand
+    ? `<path d="M88 148 L126 188 M96 140 L132 180 M392 148 L354 188 M384 140 L348 180" stroke="${sleeveBand}" stroke-width="4"/>`
+    : "";
+  const collar = polo
+    ? view === "back"
+      ? `<path d="M196 56 Q240 74 284 56 L276 72 Q240 86 204 72 Z" fill="${trim}"/>`
+      : `<path d="M210 52 L240 112 L270 52 L292 60 L262 98 L240 128 L218 98 L188 60 Z" fill="${trim}"/>
+         <path d="M226 60 L240 112 L254 60 Z" fill="${body}"/>
+         ${zip ? `<path d="M240 112 L240 160" stroke="#888" stroke-width="2"/>` : ""}`
+    : `<path d="M208 54 Q240 86 272 54" stroke="${trim === body ? "#0003" : trim}" stroke-width="7" fill="none"/>`;
+
+  const garmentSvg = `
+    <path d="${shirt}" fill="${body}"/>
+    <path d="${sleeves}" fill="${sleeve}"/>
+    ${texture ? `<path d="${shirt}" fill="url(#${id}t)"/>` : ""}
+    ${stripeEls}${bandEls}
+    <path d="${shirt}" fill="url(#${id}s)"/>
+    <path d="M145 372 H335" stroke="#0002" stroke-width="6"/>
+    ${collar}`;
+
+  if (view === "detail") {
+    return `<svg viewBox="0 0 480 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">${defs}
+      <rect width="480" height="400" fill="#d9d4cc"/>
+      <g transform="translate(-520 -160) scale(2.6)">${garmentSvg}</g>
+      <path d="M300 300 q14 -14 26 0 t26 0 t24 -4" stroke="${trim}" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </svg>`;
+  }
+  const scene = view === "lifestyle"
+    ? `<rect width="480" height="400" fill="#cfcac2"/><rect y="250" width="480" height="150" fill="#b8b3ab"/>
+       <ellipse cx="380" cy="300" rx="140" ry="60" fill="#a9a49c"/>`
+    : `<rect width="480" height="400" fill="${bg}"/>`;
+  return `<svg viewBox="0 0 480 400" preserveAspectRatio="xMidYMid ${fit}" xmlns="http://www.w3.org/2000/svg">${defs}
+    ${scene}<g transform="translate(0 10)">${garmentSvg}</g></svg>`;
+}
+
+const media = (img, fallback) => (img ? `<img src="${img}" alt="" loading="lazy">` : fallback);
+
+// ---------- Product gallery & options ----------
+const state = { color: 0, size: "S" };
+const $ = (s) => document.querySelector(s);
+
+function renderGallery() {
+  const c = product.colors[state.color];
+  const views = ["front", "lifestyle", "detail", "back"];
+  $("#gallery").innerHTML = views
+    .map((v, i) => `<div class="shot">${media(c.images?.[i], garment({ ...c, bg: "#e6e6e6" }, v))}</div>`)
+    .join("");
+}
+
+function renderSwatches() {
+  $("#colorSwatches").innerHTML = product.colors
+    .map((c, i) => `<button class="${i === state.color ? "active" : ""}" data-i="${i}" aria-label="${c.name}">
+        ${garment({ ...c, bg: "#efefef" })}</button>`)
+    .join("");
+  $("#colorName").textContent = product.colors[state.color].name;
+}
+
+function renderSizes() {
+  const sold = product.soldOut[product.colors[state.color].name] || [];
+  if (sold.includes(state.size)) state.size = product.sizes.find((s) => !sold.includes(s));
+  $("#sizes").innerHTML = product.sizes
+    .map((s) => `<button class="${s === state.size ? "active" : ""}" ${sold.includes(s) ? "disabled" : ""}>${s}</button>`)
+    .join("");
+}
+
+$("#colorSwatches").addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  state.color = +btn.dataset.i;
+  renderSwatches();
+  renderSizes();
+  renderGallery();
+});
+
+$("#sizes").addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn || btn.disabled) return;
+  state.size = btn.textContent;
+  renderSizes();
+});
+
+// ---------- Cart ----------
+let cartCount = 2;
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+$("#addToCart").addEventListener("click", () => {
+  cartCount++;
+  const badge = $("#cartCount");
+  badge.textContent = cartCount;
+  badge.classList.add("bump");
+  setTimeout(() => badge.classList.remove("bump"), 200);
+  toast(`Added Urban Monaco Knit Polo — ${product.colors[state.color].name} / ${state.size}`);
+});
+
+// ---------- Related carousel ----------
+const carousel = $("#carousel");
+carousel.innerHTML = related
+  .map((p) => `<a href="#" class="card">
+      <div class="card-img">${media(p.image, garment({ ...p, bg: "#e9eaec" }, "front", "meet"))}</div>
+      <div class="card-swatches">${p.swatches.map((s) => `<span style="background:${s}"></span>`).join("")}</div>
+      <h3>${p.name}</h3>
+      <p class="variant">${p.variant}</p>
+      <p class="card-price">${fmt(p.price)}</p>
+    </a>`)
+  .join("");
+
+const prev = $("#prevBtn");
+const next = $("#nextBtn");
+function updateArrows() {
+  prev.disabled = carousel.scrollLeft <= 2;
+  next.disabled = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 2;
+}
+const step = () => carousel.querySelector(".card").offsetWidth + parseFloat(getComputedStyle(carousel).columnGap);
+prev.addEventListener("click", () => carousel.scrollBy({ left: -step() }));
+next.addEventListener("click", () => carousel.scrollBy({ left: step() }));
+carousel.addEventListener("scroll", updateArrows, { passive: true });
+window.addEventListener("resize", updateArrows);
+
+// ---------- Mobile menu ----------
+const toggle = $(".menu-toggle");
+toggle.addEventListener("click", () => {
+  const open = $(".main-nav").classList.toggle("open");
+  toggle.setAttribute("aria-expanded", open);
+});
+
+// ---------- Newsletter ----------
+$("#signupForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  e.target.reset();
+  $("#signupMsg").hidden = false;
+});
+
+$(".live-chat").addEventListener("click", () => toast("Live chat is not connected in this prototype"));
+
+renderSwatches();
+renderSizes();
+renderGallery();
+updateArrows();
