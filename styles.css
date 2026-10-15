@@ -88,6 +88,7 @@ button { font: inherit; cursor: pointer; background: none; border: 0; color: inh
   overflow: hidden;
 }
 .gallery-dots { display: none; }
+.gallery .shot.crop img.photo { transform: scale(2.1); transform-origin: 76% 38%; }
 .gallery .shot,
 .card-img,
 .color-swatches button { position: relative; }
@@ -399,6 +400,7 @@ img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit:
   }
   .gallery::-webkit-scrollbar { display: none; }
   .gallery .shot { flex: 0 0 100%; scroll-snap-align: start; aspect-ratio: 4 / 5; }
+  .gallery-dots[hidden] { display: none; }
   .gallery-dots {
     display: flex;
     justify-content: center;

@@ -6,7 +6,8 @@ const product = {
   colors: [
     { name: "Sheer White", body: "#f3f1ec", trim: "#141414",
       images: ["front", "lifestyle", "detail", "back"].map((v) => `assets/products/monaco-white-${v}.webp`) },
-    { name: "Jet Black", body: "#1b1b1b", trim: "#f3f1ec" },
+    { name: "Jet Black", body: "#1b1b1b", trim: "#f3f1ec",
+      images: ["assets/products/monaco-black-front.webp"] },
   ],
   sizes: ["S", "M", "L", "XL", "XXL"],
   soldOut: { "Jet Black": ["XXL"] },
@@ -93,11 +94,19 @@ const $ = (s) => document.querySelector(s);
 
 function renderGallery() {
   const c = product.colors[state.color];
-  const views = ["front", "lifestyle", "detail", "back"];
-  $("#gallery").innerHTML = views
-    .map((v, i) => `<div class="shot">${media(c.images?.[i], garment({ ...c, bg: "#e6e6e6" }, v), `${c.name} — ${v}`)}</div>`)
+  // Colours with photos show just their photos (a single photo is paired with a
+  // zoomed crop of itself); colours without photos show the four drawn views.
+  const names = ["front", "lifestyle", "detail", "back"];
+  let shots = c.images?.length
+    ? c.images.map((src, i) => ({ src, view: names[i] || "front" }))
+    : names.map((view) => ({ view }));
+  if (shots.length === 1) shots.push({ src: shots[0].src, view: "detail", crop: true });
+  const views = shots.map((s) => s.view);
+  $("#gallery").innerHTML = shots
+    .map((s) => `<div class="shot${s.crop ? " crop" : ""}">${media(s.src, garment({ ...c, bg: "#e6e6e6" }, s.view), `${c.name} — ${s.view}`)}</div>`)
     .join("");
   $("#gallery").scrollLeft = 0;
+  $("#galleryDots").hidden = views.length < 2;
   $("#galleryDots").innerHTML = views
     .map((_, i) => `<button class="${i ? "" : "active"}" data-i="${i}" aria-label="Image ${i + 1}"></button>`)
     .join("");
