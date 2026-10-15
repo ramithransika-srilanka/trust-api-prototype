@@ -228,7 +228,8 @@ $("#signupForm").addEventListener("submit", (e) => {
 });
 
 // ---------- Check trust ----------
-// Steps: "start" (Check trust) -> "email" (Send OTP) -> "code" (Verify).
+// Steps: "start" (Check the truth) -> "email" (Send OTP) -> "code" (checks itself once all
+// six digits are in) -> "verified" (Truth + mic buttons) -> "checked" (after the chat).
 // Sending and verifying are placeholders until a backend is connected.
 const trust = { step: "start", email: "" };
 // Demo code accepted until the trust service is connected
@@ -248,7 +249,7 @@ const codeField = {
 
 const trustSteps = {
   email: { box: $("#trustEmail"), input: $("#trustEmailInput"), error: $("#trustEmailError"), label: "Send OTP" },
-  code: { box: $("#trustCode"), input: codeField, error: $("#trustCodeError"), label: "Verify" },
+  code: { box: $("#trustCode"), input: codeField, error: $("#trustCodeError"), label: "" },
 };
 const trustLinks = [$("#trustChangeEmail"), $("#trustResend")];
 
@@ -267,6 +268,8 @@ function showTrustStep(step) {
     s.input.tabIndex = on ? 0 : -1;
   }
   trustLinks.forEach((l) => (l.tabIndex = step === "code" ? 0 : -1));
+  // The code step has no button: it verifies itself.
+  trustBtn.hidden = step === "code";
   trustBtn.textContent = trustSteps[step].label;
   setTimeout(() => trustSteps[step].input.focus(), 250);
 }
@@ -297,13 +300,6 @@ $("#trustForm").addEventListener("submit", (e) => {
 
   if (trust.step === "start") return showTrustStep("email");
 
-  if (trust.step === "checked") {
-    const win = openTruthWindow();
-    if (win) showTruthChat(win, { overlay: false });
-    else toast("Please allow pop-ups for this site to open the truth check again.");
-    return;
-  }
-
   if (trust.step === "email") {
     const email = trustSteps.email.input.value.trim();
     if (!email) return setTrustError("email", "Please enter your email address.");
@@ -313,7 +309,17 @@ $("#trustForm").addEventListener("submit", (e) => {
     return sendOtp();
   }
 
-  const code = trustSteps.code.input.value.trim();
+  // Enter in the code boxes checks the code too.
+  verifyCode();
+});
+
+// ---------- Code check ----------
+// Runs as soon as all six digits are in (typed, pasted or autofilled).
+const codeStatus = $("#trustCodeStatus");
+let verifying = false;
+function verifyCode() {
+  if (verifying) return;
+  const code = codeField.value;
   if (!/^\d{6}$/.test(code)) return setTrustError("code", "Please enter the 6-digit code.");
   if (code !== TRUST_DEMO_CODE) {
     // Clear the boxes so the shopper can type the code again straight away
@@ -322,10 +328,49 @@ $("#trustForm").addEventListener("submit", (e) => {
     return setTrustError("code", "That code isn't right. Check your email and try again.");
   }
   setTrustError("code", "");
+  verifying = true;
+  codeStatus.textContent = "Verifying…";
+  codeBoxes.forEach((b) => (b.readOnly = true));
+  setTimeout(() => {
+    verifying = false;
+    codeStatus.textContent = "";
+    codeBoxes.forEach((b) => (b.readOnly = false));
+    showTruthRow();
+  }, 700);
+}
+
+// ---------- Truth + mic buttons ----------
+const truthRow = $("#truthRow");
+const truthOpen = $("#truthOpen");
+const truthLabel = $("#truthLabel");
+
+function foldTrustSteps() {
+  for (const s of Object.values(trustSteps)) {
+    s.box.classList.remove("open");
+    s.box.setAttribute("aria-hidden", "true");
+    s.input.tabIndex = -1;
+  }
+  trustLinks.forEach((l) => (l.tabIndex = -1));
+}
+
+function showTruthRow() {
+  trust.step = "verified";
+  foldTrustSteps();
+  trustBtn.hidden = true;
+  truthRow.hidden = false;
+  truthOpen.focus();
+}
+
+// The first time, the product page is covered by the overlay until the shopper is back;
+// after that the chat just opens.
+function openTruthChat() {
   const win = openTruthWindow();
-  if (!win) return setTrustError("code", "Please allow pop-ups for this site to continue the truth check.");
-  trustBusy("Verifying…", () => showTruthChat(win));
-});
+  if (!win) return toast("Please allow pop-ups for this site to open the truth check.");
+  showTruthChat(win, { overlay: trust.step === "verified" });
+}
+truthOpen.addEventListener("click", openTruthChat);
+// Voice isn't connected yet, so the mic opens the same chat.
+$("#truthMic").addEventListener("click", openTruthChat);
 
 // Opened inside the click so pop-up blockers allow it; the chat loads into it afterwards.
 function openTruthWindow() {
@@ -343,24 +388,12 @@ function showTruthChat(win, { overlay = true } = {}) {
   if (overlay) openTrustOverlay(win);
 }
 
-// Back on the product page after the chat: the form folds away and the button says so.
-// The shopper is already verified, so the button opens the chat again directly.
+// Back on the product page after the chat, the long button says so.
 const ACCOUNT_AVATAR = "assets/avatar.webp";
 const TICK = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12.5L10 17.5L19 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function markTruthChecked() {
   trust.step = "checked";
-  for (const s of Object.values(trustSteps)) {
-    s.box.classList.remove("open");
-    s.box.setAttribute("aria-hidden", "true");
-    s.input.tabIndex = -1;
-  }
-  trustLinks.forEach((l) => (l.tabIndex = -1));
-  trustBtn.classList.add("is-checked");
-  // The account's avatar, a divider, then the label with a tick after it.
-  trustBtn.innerHTML =
-    `<img class="check-trust__avatar" src="${ACCOUNT_AVATAR}" alt="Your account" />` +
-    `<span class="check-trust__divider" aria-hidden="true"></span>` +
-    `<span class="check-trust__label"><span>Truth checked</span>${TICK}</span>`;
+  truthLabel.innerHTML = `<span>Truth checked</span>${TICK}`;
 }
 
 // ---------- Trust check window + overlay ----------
@@ -405,6 +438,7 @@ function fillCode(from, digits) {
   digits.split("").forEach((d, k) => codeBoxes[from + k] && (codeBoxes[from + k].value = d));
   if (trustSteps.code.error.textContent) setTrustError("code", "");
   codeBoxes[Math.min(from + digits.length, codeBoxes.length - 1)].focus();
+  if (codeField.value.length === codeBoxes.length) verifyCode();
 }
 codeBoxes.forEach((box, i) => {
   box.addEventListener("input", () => {

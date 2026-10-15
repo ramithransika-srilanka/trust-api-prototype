@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,600;0,800;1,800;1,900&family=Inter:wght@400;500;600;700&family=Syncopate:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20261015h" />
+  <link rel="stylesheet" href="styles.css?v=20261015i" />
 </head>
 <body>
   <!-- Header -->
@@ -95,6 +95,7 @@
                     <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 6" tabindex="-1" />
                   </div>
                   <p class="trust-error" id="trustCodeError" role="alert"></p>
+                  <p class="trust-status" id="trustCodeStatus" aria-live="polite"></p>
                 </div>
                 <p class="trust-hint">Didn't get it? <button type="button" class="trust-link" id="trustResend" tabindex="-1">Resend code</button></p>
               </div>
@@ -102,6 +103,18 @@
           </div>
           <button type="submit" class="check-trust" id="checkTrust">Check the truth</button>
         </form>
+
+        <!-- Shown once the code is verified: open the truth chat, or ask by voice. -->
+        <div class="truth-row" id="truthRow" hidden>
+          <button type="button" class="check-trust truth-open" id="truthOpen">
+            <img class="check-trust__avatar" src="assets/avatar.webp" alt="" />
+            <span class="check-trust__divider" aria-hidden="true"></span>
+            <span class="check-trust__label" id="truthLabel"><span>Truth</span></span>
+          </button>
+          <button type="button" class="truth-mic" id="truthMic" aria-label="Ask about this shirt by voice">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+          </button>
+        </div>
 
         <button class="add-to-cart" id="addToCart">
           Add to cart
@@ -200,6 +213,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20261015h"></script>
+  <script src="script.js?v=20261015i"></script>
 </body>
 </html>
