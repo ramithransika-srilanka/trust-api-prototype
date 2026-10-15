@@ -228,6 +228,7 @@ $("#signupForm").addEventListener("submit", (e) => {
 });
 
 $(".live-chat").addEventListener("click", () => toast("Live chat is not connected in this prototype"));
+$("#checkTrust").addEventListener("click", () => toast("Trust check is not connected in this prototype"));
 
 renderSwatches();
 renderSizes();
