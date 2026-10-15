@@ -391,25 +391,23 @@ img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit:
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(0, 0, 0, 0.75);
+  /* The store page stays visible but blurred behind the message. */
+  background: rgba(0, 0, 0, 0.45);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
   color: var(--white);
   text-align: center;
   font-family: "Inter", sans-serif;
+  font-size: 14px;
+  line-height: 20px;
   outline: none;
   animation: trust-fade 0.2s ease;
 }
 .trust-overlay[hidden] { display: none; }
 @keyframes trust-fade { from { opacity: 0; } }
-.trust-overlay-content { max-width: 420px; }
-.trust-overlay-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  color: #ff6b4a;
-}
-.trust-overlay-badge span { color: var(--white); font-size: 26px; font-weight: 700; }
-.trust-overlay p { margin: 0; font-size: 22px; line-height: 1.4; font-weight: 500; }
+.trust-overlay-content { max-width: 320px; display: flex; flex-direction: column; gap: 4px; }
+.trust-overlay h2 { margin: 0; font: inherit; font-weight: 600; }
+.trust-overlay p { margin: 0; font-weight: 400; }
 body.trust-overlay-open { overflow: hidden; }
 
 /* ---------- Floating ---------- */

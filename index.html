@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,600;0,800;1,800;1,900&family=Inter:wght@400;500;600;700&family=Syncopate:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20261015b" />
+  <link rel="stylesheet" href="styles.css?v=20261015e" />
 </head>
 <body>
   <!-- Header -->
@@ -193,16 +193,13 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- Shown over the page while the truth check window is open -->
-  <div class="trust-overlay" id="trustOverlay" role="dialog" aria-modal="true" aria-labelledby="trustOverlayText" tabindex="-1" hidden>
+  <div class="trust-overlay" id="trustOverlay" role="dialog" aria-modal="true" aria-labelledby="trustOverlayTitle" aria-describedby="trustOverlayText" tabindex="-1" hidden>
     <div class="trust-overlay-content">
-      <div class="trust-overlay-badge" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="30" height="30"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span>Check the truth</span>
-      </div>
+      <h2 id="trustOverlayTitle">Checking the truth</h2>
       <p id="trustOverlayText">Complete your truth check in the open window, or close it to continue shopping.</p>
     </div>
   </div>
 
-  <script src="script.js?v=20261015b"></script>
+  <script src="script.js?v=20261015e"></script>
 </body>
 </html>
