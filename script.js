@@ -362,7 +362,7 @@ function resetTrust() {
     s.input.value = "";
   }
   trustLinks.forEach((l) => (l.tabIndex = -1));
-  trustBtn.textContent = "Check trust";
+  trustBtn.textContent = "Check the truth";
 }
 
 // The trust window reports how it ended before closing
