@@ -1,23 +1,26 @@
 // ---------- Data ----------
 // To use real photography, add an `images` array (4 URLs) to a color, or an
-// `image` URL to a related product; the SVG illustrations are fallbacks.
+// `image` URL to a related product. The SVG illustrations show underneath and
+// stay visible if an image file is missing.
 const product = {
   colors: [
-    { name: "Sheer White", body: "#f3f1ec", trim: "#141414" },
-    { name: "Jet Black", body: "#1b1b1b", trim: "#f3f1ec" },
+    { name: "Sheer White", body: "#f3f1ec", trim: "#141414",
+      images: ["front", "lifestyle", "detail", "back"].map((v) => `assets/products/monaco-white-${v}.webp`) },
+    { name: "Jet Black", body: "#1b1b1b", trim: "#f3f1ec",
+      images: ["assets/products/monaco-black-front.webp"] },
   ],
   sizes: ["S", "M", "L", "XL", "XXL"],
   soldOut: { "Jet Black": ["XXL"] },
 };
 
 const related = [
-  { name: "Urban Edge Knit Polo", variant: "Navy", price: 6450, body: "#f3f1ec", trim: "#f3f1ec", sleeve: "#1d2c57", stripes: "#1d2c57", polo: true,
+  { name: "Urban Edge Knit Polo", variant: "Navy", price: 6450, image: "assets/products/urban-edge-navy.webp", body: "#f3f1ec", trim: "#f3f1ec", sleeve: "#1d2c57", stripes: "#1d2c57", polo: true,
     swatches: ["#1d3461", "#f5f5f5", "#4e8a1e", "#7a2e3a", "#1b1b1b", "#ededed"] },
-  { name: "Urban Classic Knit Polo", variant: "Jet Black", price: 5950, body: "#1b1b1b", trim: "#1b1b1b", sleeveBand: "#f3f1ec", polo: true, zip: true,
+  { name: "Urban Classic Knit Polo", variant: "Jet Black", price: 5950, image: "assets/products/urban-classic-black.webp", body: "#1b1b1b", trim: "#1b1b1b", sleeveBand: "#f3f1ec", polo: true, zip: true,
     swatches: ["#1b1b1b", "#f5f5f5", "#f0f0f0", "#9aa1b1", "#4e8a1e", "#1d3461"] },
-  { name: "Urban Stripe Knit Tee", variant: "Jet Black", price: 5950, body: "#1b1b1b", trim: "#1b1b1b", stripes: "#f3f1ec",
+  { name: "Urban Stripe Knit Tee", variant: "Jet Black", price: 5950, image: "assets/products/urban-stripe-black.webp", body: "#1b1b1b", trim: "#1b1b1b", stripes: "#f3f1ec",
     swatches: ["#1b1b1b", "#3a3f55", "#f5f5f5", "#1d3461"] },
-  { name: "Luxe Knit Polo", variant: "Olive", price: 6250, body: "#5d6644", trim: "#5d6644", polo: true, texture: true,
+  { name: "Luxe Knit Polo", variant: "Olive", price: 6250, image: "assets/products/luxe-olive.webp", body: "#5d6644", trim: "#5d6644", polo: true, texture: true,
     swatches: ["#4e8a1e", "#1b1b1b", "#6b4a35"] },
   { name: "Riviera Knit Polo", variant: "Sand", price: 6450, body: "#d8c7a8", trim: "#3b2f25", polo: true,
     swatches: ["#d8c7a8", "#1b1b1b", "#f5f5f5"] },
@@ -82,7 +85,8 @@ function garment(opts, view = "front", fit = "slice") {
     ${scene}<g transform="translate(0 10)">${garmentSvg}</g></svg>`;
 }
 
-const media = (img, fallback) => (img ? `<img src="${img}" alt="" loading="lazy">` : fallback);
+const media = (img, fallback, alt = "") =>
+  fallback + (img ? `<img class="photo" src="${img}" alt="${alt}" loading="lazy" onerror="this.remove()">` : "");
 
 // ---------- Product gallery & options ----------
 const state = { color: 0, size: "S" };
@@ -90,18 +94,46 @@ const $ = (s) => document.querySelector(s);
 
 function renderGallery() {
   const c = product.colors[state.color];
-  const views = ["front", "lifestyle", "detail", "back"];
-  $("#gallery").innerHTML = views
-    .map((v, i) => `<div class="shot">${media(c.images?.[i], garment({ ...c, bg: "#e6e6e6" }, v))}</div>`)
+  // Colours with photos show just their photos (a single photo is paired with a
+  // zoomed crop of itself); colours without photos show the four drawn views.
+  const names = ["front", "lifestyle", "detail", "back"];
+  let shots = c.images?.length
+    ? c.images.map((src, i) => ({ src, view: names[i] || "front" }))
+    : names.map((view) => ({ view }));
+  if (shots.length === 1) shots.push({ src: shots[0].src, view: "detail", crop: true });
+  const views = shots.map((s) => s.view);
+  $("#gallery").innerHTML = shots
+    .map((s) => `<div class="shot${s.crop ? " crop" : ""}">${media(s.src, garment({ ...c, bg: "#e6e6e6" }, s.view), `${c.name} — ${s.view}`)}</div>`)
+    .join("");
+  $("#gallery").scrollLeft = 0;
+  $("#galleryDots").hidden = views.length < 2;
+  $("#galleryDots").innerHTML = views
+    .map((_, i) => `<button class="${i ? "" : "active"}" data-i="${i}" aria-label="Image ${i + 1}"></button>`)
     .join("");
 }
+
+// Mobile gallery: dots follow the swipe position and jump on tap
+$("#gallery").addEventListener("scroll", () => {
+  const g = $("#gallery");
+  const i = Math.round(g.scrollLeft / g.clientWidth);
+  document.querySelectorAll("#galleryDots button").forEach((d, j) => d.classList.toggle("active", i === j));
+}, { passive: true });
+$("#galleryDots").addEventListener("click", (e) => {
+  const d = e.target.closest("button");
+  if (d) $("#gallery").scrollTo({ left: d.dataset.i * $("#gallery").clientWidth, behavior: "smooth" });
+});
 
 function renderSwatches() {
   $("#colorSwatches").innerHTML = product.colors
     .map((c, i) => `<button class="${i === state.color ? "active" : ""}" data-i="${i}" aria-label="${c.name}">
-        ${garment({ ...c, bg: "#efefef" })}</button>`)
+        ${media(c.images?.[0], garment({ ...c, bg: "#efefef" }))}</button>`)
     .join("");
   $("#colorName").textContent = product.colors[state.color].name;
+  updateBuyBar();
+}
+
+function updateBuyBar() {
+  $("#mobileBuyMeta").textContent = `LKR 6,450.00 · ${product.colors[state.color].name} / ${state.size}`;
 }
 
 function renderSizes() {
@@ -126,6 +158,7 @@ $("#sizes").addEventListener("click", (e) => {
   if (!btn || btn.disabled) return;
   state.size = btn.textContent;
   renderSizes();
+  updateBuyBar();
 });
 
 // ---------- Cart ----------
@@ -137,20 +170,29 @@ function toast(msg) {
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => t.classList.remove("show"), 2200);
 }
-$("#addToCart").addEventListener("click", () => {
+function addToCart() {
   cartCount++;
   const badge = $("#cartCount");
   badge.textContent = cartCount;
   badge.classList.add("bump");
   setTimeout(() => badge.classList.remove("bump"), 200);
   toast(`Added Urban Monaco Knit Polo — ${product.colors[state.color].name} / ${state.size}`);
-});
+}
+$("#addToCart").addEventListener("click", addToCart);
+$("#mobileAddToCart").addEventListener("click", addToCart);
+
+// Mobile: show the sticky buy bar once the main button has scrolled above the viewport
+new IntersectionObserver(([entry]) => {
+  const on = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+  $("#mobileBuy").classList.toggle("show", on);
+  document.body.classList.toggle("buybar-on", on && matchMedia("(max-width: 900px)").matches);
+}).observe($("#addToCart"));
 
 // ---------- Related carousel ----------
 const carousel = $("#carousel");
 carousel.innerHTML = related
   .map((p) => `<a href="#" class="card">
-      <div class="card-img">${media(p.image, garment({ ...p, bg: "#e9eaec" }, "front", "meet"))}</div>
+      <div class="card-img">${media(p.image, garment({ ...p, bg: "#e9eaec" }, "front", "meet"), p.name)}</div>
       <div class="card-swatches">${p.swatches.map((s) => `<span style="background:${s}"></span>`).join("")}</div>
       <h3>${p.name}</h3>
       <p class="variant">${p.variant}</p>
@@ -175,6 +217,7 @@ const toggle = $(".menu-toggle");
 toggle.addEventListener("click", () => {
   const open = $(".main-nav").classList.toggle("open");
   toggle.setAttribute("aria-expanded", open);
+  document.body.classList.toggle("menu-open", open);
 });
 
 // ---------- Newsletter ----------
