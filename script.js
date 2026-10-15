@@ -345,6 +345,7 @@ function showTruthChat(win, { overlay = true } = {}) {
 
 // Back on the product page after the chat: the form folds away and the button says so.
 // The shopper is already verified, so the button opens the chat again directly.
+const ACCOUNT_AVATAR = "assets/avatar.webp";
 const TICK = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12.5L10 17.5L19 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function markTruthChecked() {
   trust.step = "checked";
@@ -355,7 +356,11 @@ function markTruthChecked() {
   }
   trustLinks.forEach((l) => (l.tabIndex = -1));
   trustBtn.classList.add("is-checked");
-  trustBtn.innerHTML = `${TICK}<span>Truth checked</span>`;
+  // The account's avatar, a divider, then the label with a tick after it.
+  trustBtn.innerHTML =
+    `<img class="check-trust__avatar" src="${ACCOUNT_AVATAR}" alt="Your account" />` +
+    `<span class="check-trust__divider" aria-hidden="true"></span>` +
+    `<span class="check-trust__label"><span>Truth checked</span>${TICK}</span>`;
 }
 
 // ---------- Trust check window + overlay ----------
