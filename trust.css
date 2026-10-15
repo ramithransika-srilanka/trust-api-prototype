@@ -112,14 +112,16 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   font-size: 14px;
   line-height: 20px;
 }
-.review__stars { display: flex; gap: 2px; margin-bottom: 4px; color: var(--accent); }
-.review__stars svg { width: 14px; height: 14px; }
-.review__stars .off { color: rgba(21, 72, 235, 0.25); }
 .review__text { margin: 0; }
 .review__meta { margin: 4px 0 0; font-size: 12px; line-height: 16px; color: var(--muted); }
-.review__stars { align-items: center; }
-.review__score { margin-left: 6px; font-size: 12px; line-height: 16px; color: var(--muted); }
 .review__heading { margin: 8px 0 4px; font-size: 13px; font-weight: 600; }
+.review__heading:first-child { margin-top: 0; }
+/* A small fact sheet: label on the left, value on the right. */
+.facts { width: 80%; }
+.facts__title { margin-top: 0; }
+.facts__rows { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin: 0; }
+.facts__rows dt { color: var(--muted); }
+.facts__rows dd { margin: 0; text-align: right; font-weight: 500; }
 .review__list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
 .review__list li { position: relative; padding-left: 20px; }
 .review__list li::before {

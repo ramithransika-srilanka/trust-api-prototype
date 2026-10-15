@@ -27,14 +27,12 @@ const PAST = {
   size: "M",
   when: "August",
   photo: "assets/products/urban-edge-navy.webp",
-  rating: 4,
   review: "Fits well through the shoulders and the collar still sits flat after a lot of washes. Sleeves are a little snug on me.",
 };
 
 // What other shoppers have said since launch, summarised (no names). A concern is only
 // mentioned when it is serious; minor ones stay out of the summary.
 const OTHERS = {
-  rating: 4.5,
   likes: [
     "The collar sits flat all day and doesn't curl",
     "Soft, light knit that's comfortable in the heat",
@@ -44,6 +42,27 @@ const OTHERS = {
   concerns: [{ text: "The white is slightly see-through in strong sun", serious: false }],
 };
 const seriousConcerns = OTHERS.concerns.filter((c) => c.serious);
+
+// Authenticity, provenance and the seller's track record. Sample figures until the
+// trust service is connected.
+const SELLER = {
+  name: "Carnage",
+  batch: { "Sheer White": "MNK-0926-SW", "Jet Black": "MNK-0926-JB" },
+  provenance: (color) => [
+    ["Sold by", "Carnage, the brand itself"],
+    ["Batch", SELLER.batch[color] || SELLER.batch["Sheer White"]],
+    ["Made in", "Sri Lanka"],
+    ["Knitted", "September 2026"],
+    ["Yarn", "Cotton blend"],
+    ["Released", "8 October 2026"],
+  ],
+  reliability: [
+    ["On-time shipping", "96.8% of orders"],
+    ["Not as described", "0.6% of orders"],
+    ["Disputes settled in", "2.4 days avg."],
+    ["Refund or exchange", "93% of disputes"],
+  ],
+};
 
 const SIZES = ["S", "M", "L", "XL", "XXL"];
 const sizeStep = (size, by) => SIZES[Math.min(SIZES.length - 1, Math.max(0, SIZES.indexOf(size) + by))];
@@ -84,9 +103,6 @@ function group(from) {
   return lastGroup;
 }
 
-const star = (on) =>
-  `<svg viewBox="0 0 20 20" class="${on ? "" : "off"}" aria-hidden="true"><path fill="currentColor" d="M10 1.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.5 7.7l5.9-.8z"/></svg>`;
-
 function photoEl(src, label) {
   const img = el("img", "chat__photo");
   img.src = src;
@@ -106,19 +122,19 @@ function render(m) {
   }
   if (m.kind === "review") {
     const card = el("div", "review enter");
-    const stars = el("div", "review__stars");
-    stars.setAttribute("aria-label", `${m.rating} out of 5 stars`);
-    stars.innerHTML = [1, 2, 3, 4, 5].map((i) => star(i <= m.rating)).join("");
-    card.append(stars, el("p", "review__text", `“${m.text}”`), el("p", "review__meta", m.who));
+    card.append(el("p", "review__text", `“${m.text}”`), el("p", "review__meta", m.who));
+    return card;
+  }
+  if (m.kind === "facts") {
+    const card = el("div", "review facts enter");
+    card.appendChild(el("p", "review__heading facts__title", m.title));
+    const dl = el("dl", "facts__rows");
+    m.rows.forEach(([k, v]) => dl.append(el("dt", "", k), el("dd", "", v)));
+    card.appendChild(dl);
     return card;
   }
   if (m.kind === "summary") {
     const card = el("div", "review review--summary enter");
-    const stars = el("div", "review__stars");
-    stars.setAttribute("aria-label", `Rated ${m.rating} out of 5`);
-    stars.innerHTML = [1, 2, 3, 4, 5].map((i) => star(i <= Math.round(m.rating))).join("");
-    stars.appendChild(el("span", "review__score", `${m.rating} from early reviews`));
-    card.appendChild(stars);
     const section = (title, items, cls) => {
       if (!items.length) return;
       card.appendChild(el("p", "review__heading", title));
@@ -196,6 +212,7 @@ const TOPICS = [
   { id: "past", label: "My past purchase review", run: () => pastReview() },
   { id: "feel", label: "How does it look and feel?", run: () => lookAndFeel() },
   { id: "others", label: "What are others saying?", run: () => othersSay() },
+  { id: "trust", label: "Is it genuine? Can I trust the seller?", run: () => trustSeller() },
   { id: "durable", label: "Is it durable?", run: () => durability() },
 ];
 const DONE = { label: "That's all I needed", done: true, run: () => finish() };
@@ -243,7 +260,7 @@ function pastReview() {
   send(
     [
       t(`Here's what you said about the ${PAST.name} in ${PAST.when}:`),
-      { kind: "review", rating: PAST.rating, text: PAST.review, who: `Your review · ${PAST.color}, size ${PAST.size}` },
+      { kind: "review", text: PAST.review, who: `Your review · ${PAST.color}, size ${PAST.size}` },
       t("The Monaco uses the same collar construction, so it should hold its shape the same way."),
       t("The sleeves are cut a touch roomier on this one, which should help with the snug feeling you mentioned."),
       t("Anything else you'd like to know?"),
@@ -279,8 +296,48 @@ function othersSay() {
   send(
     [
       t("It only launched last week, so there are just a few reviews so far. Here's the gist:"),
-      { kind: "summary", rating: OTHERS.rating, likes: OTHERS.likes, concerns: seriousConcerns.map((c) => c.text) },
+      { kind: "summary", likes: OTHERS.likes, concerns: seriousConcerns.map((c) => c.text) },
       t(seriousConcerns.length ? "Mostly positive, but keep that in mind." : "So far, nobody has reported a real problem with it."),
+      t("Anything else you'd like to know?"),
+    ],
+    nextChoices(),
+  );
+}
+
+function trustSeller() {
+  covered.add("trust");
+  send(
+    [
+      t(`Yes, it's genuine. It's sold directly by ${SELLER.name}, the brand that makes it, not a reseller.`),
+      { kind: "facts", title: "Where this shirt comes from", rows: SELLER.provenance(shopper.color) },
+      t("The batch code is printed on the woven label inside the collar, so you can match it to your receipt when it arrives."),
+      t(`Want to see how reliable ${SELLER.name} is as a seller?`),
+    ],
+    [
+      { label: "Yes, show me", run: () => sellerRecord() },
+      { label: "No, I'm good", run: () => send([t("Sure. Anything else you'd like to know?")], nextChoices()) },
+    ],
+  );
+}
+
+function sellerRecord() {
+  covered.add("trust");
+  send(
+    [
+      { kind: "facts", title: `${SELLER.name} as a seller, last 12 months`, rows: SELLER.reliability },
+      t("If something goes wrong, you message the store, they reply within a day, and most disputes end in a refund or exchange."),
+      t("This shirt is brand new, not used or refurbished, so there's no condition grade or flaw photos to check. Returns are free if it isn't right."),
+      t("Anything else you'd like to know?"),
+    ],
+    nextChoices(),
+  );
+}
+
+function conditionAnswer() {
+  send(
+    [
+      t("It's brand new, not used or refurbished, so there's no condition grade or flaw photos to check."),
+      t("If it arrives with any flaw, returns are free."),
       t("Anything else you'd like to know?"),
     ],
     nextChoices(),
@@ -307,21 +364,28 @@ function finish() {
 }
 
 // Typed questions are routed to the closest topic.
+// Trust questions are split three ways: delivery and disputes go to the seller's record,
+// used / condition questions get the condition answer, the rest to authenticity.
+// A word ending in "!" must match as a whole phrase ("is it real" but not "is it really").
 const ROUTES = [
-  { id: "durable", words: ["durab", "last", "wash", "shrink", "pill", "fade", "hold up", "long"] },
-  { id: "fit", words: ["fit", "size", "tight", "loose", "small", "large", "big", "measure"] },
-  { id: "past", words: ["past", "before", "previous", "bought", "my review", "order", "urban edge"] },
-  { id: "others", words: ["review", "others", "people", "rating", "saying", "customer"] },
-  { id: "feel", words: ["feel", "look", "fabric", "material", "soft", "colour", "color", "see-through", "sheer", "texture", "breath", "photo"] },
+  { run: () => sellerRecord(), words: ["deliver", "shipping", "ship it", "arrive", "on time", "dispute", "refund", "return", "complain", "reliab", "not as described"] },
+  { run: () => conditionAnswer(), words: ["used", "refurb", "second hand", "secondhand", "condition", "flaw", "defect", "damage", "scratch"] },
+  { run: () => trustSeller(), words: ["genuine", "is it real!", "real one", "real product", "fake", "authentic", "original", "counterfeit", "seller", "trust", "legit", "scam", "batch", "origin", "made in", "where is it made", "supply"] },
+  { run: () => durability(), words: ["durab", "last", "wash", "shrink", "pill", "fade", "hold up", "long"] },
+  { run: () => fitCheck(), words: ["fit", "size", "tight", "loose", "small", "large", "big", "measure"] },
+  { run: () => pastReview(), words: ["past", "before", "previous", "bought", "my review", "order", "urban edge"] },
+  { run: () => othersSay(), words: ["review", "others", "people", "rating", "saying", "customer"] },
+  { run: () => lookAndFeel(), words: ["feel", "look", "fabric", "material", "soft", "colour", "color", "see-through", "sheer", "texture", "breath", "photo"] },
 ];
+const matches = (q, w) => (w.endsWith("!") ? new RegExp(`\\b${w.slice(0, -1)}\\b`).test(q) : q.includes(w));
 function answerTyped(text) {
   const q = text.toLowerCase();
-  if (/(cart|checkout|buy|order it|pay|price|discount|deliver)/.test(q) && !q.includes("bought")) {
+  if (/(cart|checkout|buy|order it|pay|price|discount)/.test(q) && !q.includes("bought")) {
     return send([t("I'm only here to help you decide, so I can't add it or check out from this chat."), t("You can do that on the product page whenever you're ready.")], nextChoices());
   }
-  const route = ROUTES.find((r) => r.words.some((w) => q.includes(w)));
-  if (route) return TOPICS.find((tp) => tp.id === route.id).run();
-  send([t("I can help with the fit, your past purchase, how it looks and feels, what others are saying, or durability.")], nextChoices());
+  const route = ROUTES.find((r) => r.words.some((w) => matches(q, w)));
+  if (route) return route.run();
+  send([t("I can help with the fit, your past purchase, how it looks and feels, what others are saying, whether it's genuine and the seller is reliable, or durability.")], nextChoices());
 }
 
 // ---------- Window wiring ----------
