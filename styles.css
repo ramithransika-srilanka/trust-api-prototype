@@ -192,6 +192,8 @@ img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit:
 .check-trust:hover,
 .add-to-cart:hover { opacity: 0.88; }
 .check-trust:active { transform: scale(0.98); }
+.check-trust.is-checked { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.check-trust.is-checked svg { flex: none; }
 .check-trust:disabled { opacity: 0.6; cursor: wait; }
 
 /* Email and code steps revealed above Check trust */
