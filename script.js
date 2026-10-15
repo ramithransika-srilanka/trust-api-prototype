@@ -288,7 +288,6 @@ function sendOtp() {
     codeField.value = "";
     setTrustError("code", "");
     showTrustStep("code");
-    toast(`Code would be sent to ${trust.email} (not connected yet)`);
   });
 }
 
