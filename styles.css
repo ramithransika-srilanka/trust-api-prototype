@@ -202,8 +202,20 @@ img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit:
   transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
 }
 .trust-step.open { grid-template-rows: 1fr; opacity: 1; }
-.trust-step-inner { overflow: hidden; }
-.trust-step label { display: block; font-size: 14px; font-weight: 600; color: #444; margin: 2px 0 8px; }
+/* Vertical rhythm: 4px inside a label group, 8px between a field and its
+   error, 12px between groups, 20px before the button. The padding sits on an
+   inner body so a collapsed step is truly 0px tall; its 3px sides (offset by
+   the negative margin) keep the focus ring from being clipped. */
+.trust-step-inner { overflow: hidden; min-height: 0; margin: 0 -3px; }
+.trust-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 3px 3px 20px;
+}
+.trust-field-head { display: flex; flex-direction: column; gap: 4px; }
+.trust-control { display: flex; flex-direction: column; gap: 8px; }
+.trust-step label { display: block; margin: 0; font-size: 14px; font-weight: 600; color: #444; }
 .trust-step input {
   width: 100%;
   height: 52px;
@@ -217,19 +229,26 @@ img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit:
 }
 .trust-step input:focus { border-color: #ff6b4a; box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.2); }
 .trust-step input[aria-invalid="true"] { border-color: #d93025; }
-.trust-error { margin: 6px 0 10px 4px; min-height: 18px; font-size: 13px; color: #d93025; }
-.trust-hint { margin: -2px 0 10px; font-size: 13px; color: var(--muted); }
+.trust-error { margin: 0 0 0 4px; font-size: 13px; line-height: 1.4; color: #d93025; }
+.trust-error:empty { display: none; }
+.trust-hint { margin: 0; font-size: 13px; line-height: 1.4; color: var(--muted); }
 .trust-hint strong { color: var(--ink); font-weight: 600; }
-.trust-resend { margin: -4px 0 12px 4px; }
 .trust-link { padding: 0; font-size: 13px; font-weight: 600; color: #e0512f; text-decoration: underline; }
-.trust-step input.trust-code-input {
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: 0.5em;
+.otp-boxes { display: flex; gap: 10px; }
+.trust-step input.otp-box {
+  flex: 1;
+  min-width: 0;
+  height: 58px;
+  padding: 0;
+  border-radius: 14px;
   text-align: center;
-  padding-left: calc(20px + 0.5em);
+  font-size: 24px;
+  font-weight: 600;
+  caret-color: #ff6b4a;
 }
-.trust-step input.trust-code-input::placeholder { color: #bbb; }
+.trust-step input.otp-box:not(:placeholder-shown) { border-color: #1f1f1f; }
+.trust-step input.otp-box:focus { border-color: #ff6b4a; }
+.trust-step input.otp-box[aria-invalid="true"] { border-color: #d93025; }
 .add-to-cart:active { transform: scale(0.98); }
 
 .accordion {
@@ -364,6 +383,35 @@ img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit:
 }
 .copyright { justify-self: end; margin: 0; color: #888; font-size: 14px; padding-right: 160px; }
 
+/* ---------- Trust check overlay ---------- */
+.trust-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.75);
+  color: var(--white);
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  outline: none;
+  animation: trust-fade 0.2s ease;
+}
+.trust-overlay[hidden] { display: none; }
+@keyframes trust-fade { from { opacity: 0; } }
+.trust-overlay-content { max-width: 420px; }
+.trust-overlay-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  color: #ff6b4a;
+}
+.trust-overlay-badge span { color: var(--white); font-size: 26px; font-weight: 700; }
+.trust-overlay p { margin: 0; font-size: 22px; line-height: 1.4; font-weight: 500; }
+body.trust-overlay-open { overflow: hidden; }
+
 /* ---------- Floating ---------- */
 .live-chat {
   position: fixed;
@@ -482,7 +530,9 @@ img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit:
   .sizes { flex-wrap: nowrap; gap: 8px; margin-bottom: 18px; }
   .sizes button { flex: 1; width: auto; min-width: 0; height: 46px; font-size: 15px; }
   .add-to-cart { height: 52px; font-size: 15px; }
-  .check-trust { height: 52px; font-size: 15px; margin-bottom: 10px; }
+  .check-trust { height: 52px; font-size: 15px; }
+  .otp-boxes { gap: 8px; }
+  .trust-step input.otp-box { height: 52px; font-size: 22px; border-radius: 12px; }
   .accordion summary { font-size: 16px; }
   .returns { padding: 16px 18px; font-size: 15px; }
 

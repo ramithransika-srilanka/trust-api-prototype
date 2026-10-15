@@ -232,10 +232,24 @@ $(".live-chat").addEventListener("click", () => toast("Live chat is not connecte
 // Steps: "start" (Check trust) -> "email" (Send OTP) -> "code" (Verify).
 // Sending and verifying are placeholders until a backend is connected.
 const trust = { step: "start", email: "" };
+// Demo code accepted until the trust service is connected
+const TRUST_DEMO_CODE = "111111";
 const trustBtn = $("#checkTrust");
+// The code is typed into six single-digit boxes; this wraps them so the
+// steps below can treat them like one input.
+const codeBoxes = [...document.querySelectorAll(".otp-box")];
+const codeField = {
+  get value() { return codeBoxes.map((b) => b.value).join(""); },
+  set value(v) { codeBoxes.forEach((b, i) => (b.value = v[i] || "")); },
+  set tabIndex(t) { codeBoxes.forEach((b) => (b.tabIndex = t)); },
+  focus() { (codeBoxes.find((b) => !b.value) || codeBoxes[codeBoxes.length - 1]).focus(); },
+  setAttribute(name, v) { codeBoxes.forEach((b) => b.setAttribute(name, v)); },
+  addEventListener(type, fn) { codeBoxes.forEach((b) => b.addEventListener(type, fn)); },
+};
+
 const trustSteps = {
   email: { box: $("#trustEmail"), input: $("#trustEmailInput"), error: $("#trustEmailError"), label: "Send OTP" },
-  code: { box: $("#trustCode"), input: $("#trustCodeInput"), error: $("#trustCodeError"), label: "Verify" },
+  code: { box: $("#trustCode"), input: codeField, error: $("#trustCodeError"), label: "Verify" },
 };
 const trustLinks = [$("#trustChangeEmail"), $("#trustResend")];
 
@@ -272,7 +286,7 @@ function trustBusy(label, done) {
 function sendOtp() {
   trustBusy("Sending…", () => {
     $("#trustSentTo").textContent = trust.email;
-    $("#trustCodeInput").value = "";
+    codeField.value = "";
     setTrustError("code", "");
     showTrustStep("code");
     toast(`Code would be sent to ${trust.email} (not connected yet)`);
@@ -296,17 +310,108 @@ $("#trustForm").addEventListener("submit", (e) => {
 
   const code = trustSteps.code.input.value.trim();
   if (!/^\d{6}$/.test(code)) return setTrustError("code", "Please enter the 6-digit code.");
+  if (code !== TRUST_DEMO_CODE) {
+    // Clear the boxes so the shopper can type the code again straight away
+    codeField.value = "";
+    codeBoxes[0].focus();
+    return setTrustError("code", "That code isn't right. Check your email and try again.");
+  }
   setTrustError("code", "");
-  trustBusy("Verifying…", () => toast("Code would be verified here (not connected yet)"));
+  // Open the window inside the click so pop-up blockers allow it; it loads
+  // the trust page once verification finishes.
+  const win = window.open("", "trustCheck", "width=480,height=680");
+  if (!win) return setTrustError("code", "Please allow pop-ups for this site to continue the trust check.");
+  win.document.title = "Trust check";
+  trustBusy("Verifying…", () => {
+    if (win.closed) return;
+    const q = new URLSearchParams({ email: trust.email, color: product.colors[state.color].name, size: state.size });
+    win.location.href = `trust.html?${q}`;
+    openTrustOverlay(win);
+  });
+});
+
+// ---------- Trust check window + overlay ----------
+const trustOverlay = $("#trustOverlay");
+let trustWin = null;
+let trustWatch = null;
+
+function openTrustOverlay(win) {
+  trustWin = win;
+  trustOverlay.hidden = false;
+  document.body.classList.add("trust-overlay-open");
+  trustOverlay.focus();
+  // Hide the overlay whenever the window is closed, however it was closed
+  clearInterval(trustWatch);
+  trustWatch = setInterval(() => trustWin.closed && closeTrustOverlay(), 500);
+}
+
+function closeTrustOverlay() {
+  clearInterval(trustWatch);
+  trustOverlay.hidden = true;
+  document.body.classList.remove("trust-overlay-open");
+  trustWin = null;
+}
+
+function resetTrust() {
+  trust.step = "start";
+  trust.email = "";
+  for (const s of Object.values(trustSteps)) {
+    s.box.classList.remove("open");
+    s.box.setAttribute("aria-hidden", "true");
+    s.input.tabIndex = -1;
+    s.input.value = "";
+  }
+  trustLinks.forEach((l) => (l.tabIndex = -1));
+  trustBtn.textContent = "Check trust";
+}
+
+// The trust window reports how it ended before closing
+window.addEventListener("message", (e) => {
+  if (!trustWin || e.source !== trustWin) return;
+  if (e.data?.type === "trust-complete") {
+    closeTrustOverlay();
+    resetTrust();
+    toast("Trust check complete");
+  } else if (e.data?.type === "trust-cancelled") {
+    closeTrustOverlay();
+  }
 });
 
 for (const step of Object.keys(trustSteps)) {
   trustSteps[step].input.addEventListener("input", () => trustSteps[step].error.textContent && setTrustError(step, ""));
 }
-// Keep the code field digits-only
-trustSteps.code.input.addEventListener("input", (e) => {
-  const digits = e.target.value.replace(/\D/g, "").slice(0, 6);
-  if (digits !== e.target.value) e.target.value = digits;
+// Fill digits into the boxes starting at `from`, then focus the box after them
+function fillCode(from, digits) {
+  digits.split("").forEach((d, k) => codeBoxes[from + k] && (codeBoxes[from + k].value = d));
+  if (trustSteps.code.error.textContent) setTrustError("code", "");
+  codeBoxes[Math.min(from + digits.length, codeBoxes.length - 1)].focus();
+}
+codeBoxes.forEach((box, i) => {
+  box.addEventListener("input", () => {
+    const digits = box.value.replace(/\D/g, "");
+    box.value = "";
+    // More than one digit means a paste or one-time-code autofill
+    if (digits) fillCode(i, digits.slice(0, codeBoxes.length - i));
+  });
+  box.addEventListener("keydown", (e) => {
+    if (e.key === "Backspace" && !box.value && i > 0) {
+      e.preventDefault();
+      codeBoxes[i - 1].value = "";
+      codeBoxes[i - 1].focus();
+    } else if (e.key === "ArrowLeft" && i > 0) {
+      e.preventDefault();
+      codeBoxes[i - 1].focus();
+    } else if (e.key === "ArrowRight" && i < codeBoxes.length - 1) {
+      e.preventDefault();
+      codeBoxes[i + 1].focus();
+    }
+  });
+  box.addEventListener("paste", (e) => {
+    e.preventDefault();
+    const digits = (e.clipboardData?.getData("text") || "").replace(/\D/g, "");
+    if (digits) fillCode(i, digits.slice(0, codeBoxes.length - i));
+  });
+  box.addEventListener("focus", () => box.select());
 });
 $("#trustChangeEmail").addEventListener("click", () => showTrustStep("email"));
 $("#trustResend").addEventListener("click", () => !trustBtn.disabled && sendOtp());

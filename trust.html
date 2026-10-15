@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Trust check · Urban Monaco Knit Polo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="trust.css" />
+</head>
+<body>
+  <!-- The store's chat, styled after the Personal Store purchase chat. It only helps the
+       shopper decide (fit, past purchase, look and feel, what others say); no checkout. -->
+  <div class="chat" role="main" aria-label="Chat with Carnage Store">
+    <div class="chat__top">
+      <button class="back" id="back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 19L8 12L15 5" /></svg>
+        Back
+      </button>
+      <span class="chat__store">Carnage Store</span>
+    </div>
+
+    <div class="chat__log" id="log" aria-live="polite"></div>
+
+    <div class="chat__dock">
+      <form class="ask" id="ask">
+        <input class="ask__input" id="askInput" placeholder="Ask me anything about this shirt" aria-label="Ask me anything about this shirt" enterkeyhint="send" autocomplete="off" />
+        <button type="submit" class="ask__btn ask__btn--send" id="askSend" aria-label="Send" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M12 5L6 11M12 5L18 11" /></svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- A photo from the thread, full screen on black. -->
+  <div class="viewer" id="viewer" hidden>
+    <button class="back back--light" id="viewerBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 19L8 12L15 5" /></svg>
+      Back
+    </button>
+    <img id="viewerImg" alt="" />
+  </div>
+
+  <script src="trust.js"></script>
+</body>
+</html>
