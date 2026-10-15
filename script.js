@@ -233,9 +233,21 @@ $(".live-chat").addEventListener("click", () => toast("Live chat is not connecte
 // Sending and verifying are placeholders until a backend is connected.
 const trust = { step: "start", email: "" };
 const trustBtn = $("#checkTrust");
+// The code is typed into six single-digit boxes; this wraps them so the
+// steps below can treat them like one input.
+const codeBoxes = [...document.querySelectorAll(".otp-box")];
+const codeField = {
+  get value() { return codeBoxes.map((b) => b.value).join(""); },
+  set value(v) { codeBoxes.forEach((b, i) => (b.value = v[i] || "")); },
+  set tabIndex(t) { codeBoxes.forEach((b) => (b.tabIndex = t)); },
+  focus() { (codeBoxes.find((b) => !b.value) || codeBoxes[codeBoxes.length - 1]).focus(); },
+  setAttribute(name, v) { codeBoxes.forEach((b) => b.setAttribute(name, v)); },
+  addEventListener(type, fn) { codeBoxes.forEach((b) => b.addEventListener(type, fn)); },
+};
+
 const trustSteps = {
   email: { box: $("#trustEmail"), input: $("#trustEmailInput"), error: $("#trustEmailError"), label: "Send OTP" },
-  code: { box: $("#trustCode"), input: $("#trustCodeInput"), error: $("#trustCodeError"), label: "Verify" },
+  code: { box: $("#trustCode"), input: codeField, error: $("#trustCodeError"), label: "Verify" },
 };
 const trustLinks = [$("#trustChangeEmail"), $("#trustResend")];
 
@@ -272,7 +284,7 @@ function trustBusy(label, done) {
 function sendOtp() {
   trustBusy("Sending…", () => {
     $("#trustSentTo").textContent = trust.email;
-    $("#trustCodeInput").value = "";
+    codeField.value = "";
     setTrustError("code", "");
     showTrustStep("code");
     toast(`Code would be sent to ${trust.email} (not connected yet)`);
@@ -359,10 +371,38 @@ window.addEventListener("message", (e) => {
 for (const step of Object.keys(trustSteps)) {
   trustSteps[step].input.addEventListener("input", () => trustSteps[step].error.textContent && setTrustError(step, ""));
 }
-// Keep the code field digits-only
-trustSteps.code.input.addEventListener("input", (e) => {
-  const digits = e.target.value.replace(/\D/g, "").slice(0, 6);
-  if (digits !== e.target.value) e.target.value = digits;
+// Fill digits into the boxes starting at `from`, then focus the next empty box
+function fillCode(from, digits) {
+  digits.split("").forEach((d, k) => codeBoxes[from + k] && (codeBoxes[from + k].value = d));
+  if (trustSteps.code.error.textContent) setTrustError("code", "");
+  codeField.focus();
+}
+codeBoxes.forEach((box, i) => {
+  box.addEventListener("input", () => {
+    const digits = box.value.replace(/\D/g, "");
+    box.value = "";
+    // More than one digit means a paste or one-time-code autofill
+    if (digits) fillCode(i, digits.slice(0, codeBoxes.length - i));
+  });
+  box.addEventListener("keydown", (e) => {
+    if (e.key === "Backspace" && !box.value && i > 0) {
+      e.preventDefault();
+      codeBoxes[i - 1].value = "";
+      codeBoxes[i - 1].focus();
+    } else if (e.key === "ArrowLeft" && i > 0) {
+      e.preventDefault();
+      codeBoxes[i - 1].focus();
+    } else if (e.key === "ArrowRight" && i < codeBoxes.length - 1) {
+      e.preventDefault();
+      codeBoxes[i + 1].focus();
+    }
+  });
+  box.addEventListener("paste", (e) => {
+    e.preventDefault();
+    const digits = (e.clipboardData?.getData("text") || "").replace(/\D/g, "");
+    if (digits) fillCode(i, digits.slice(0, codeBoxes.length - i));
+  });
+  box.addEventListener("focus", () => box.select());
 });
 $("#trustChangeEmail").addEventListener("click", () => showTrustStep("email"));
 $("#trustResend").addEventListener("click", () => !trustBtn.disabled && sendOtp());

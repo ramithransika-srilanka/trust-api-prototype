@@ -76,9 +76,16 @@
           </div>
           <div class="trust-step" id="trustCode" aria-hidden="true">
             <div class="trust-step-inner">
-              <label for="trustCodeInput">Enter the 6-digit code</label>
+              <label for="trustCode1" id="trustCodeLabel">Enter the 6-digit code</label>
               <p class="trust-hint">Sent to <strong id="trustSentTo"></strong> · <button type="button" class="trust-link" id="trustChangeEmail" tabindex="-1">Change email</button></p>
-              <input type="text" id="trustCodeInput" class="trust-code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" tabindex="-1" />
+              <div class="otp-boxes" role="group" aria-labelledby="trustCodeLabel">
+                <input type="text" class="otp-box" id="trustCode1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" placeholder=" " aria-label="Digit 1" tabindex="-1" />
+                <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 2" tabindex="-1" />
+                <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 3" tabindex="-1" />
+                <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 4" tabindex="-1" />
+                <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 5" tabindex="-1" />
+                <input type="text" class="otp-box" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder=" " aria-label="Digit 6" tabindex="-1" />
+              </div>
               <p class="trust-error" id="trustCodeError" role="alert"></p>
               <p class="trust-hint trust-resend">Didn't get it? <button type="button" class="trust-link" id="trustResend" tabindex="-1">Resend code</button></p>
             </div>
