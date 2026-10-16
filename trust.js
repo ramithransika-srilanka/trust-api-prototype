@@ -213,26 +213,123 @@ function showChoices(choices) {
 // ---------- What the store can help with ----------
 const covered = new Set();
 const TOPICS = [
-  { id: "fit", label: "Run a fit check", run: () => fitCheck() },
-  { id: "past", label: "My past purchase review", run: () => pastReview() },
-  { id: "feel", label: "How does it look and feel?", run: () => lookAndFeel() },
-  { id: "others", label: "What are others saying?", run: () => othersSay() },
-  { id: "trust", label: "Is it genuine? Can I trust the seller?", run: () => trustSeller() },
-  { id: "durable", label: "Is it durable?", run: () => durability() },
+  { id: "trust", label: "Is the seller legit?", run: () => trustSeller() },
+  { id: "feel", label: "What's the shirt like?", run: () => lookAndFeel() },
+  { id: "others", label: "What are people saying?", run: () => othersSay() },
+  { id: "durable", label: "Will it last?", run: () => durability() },
+  { id: "fit", label: "What size should I get?", run: () => fitCheck() },
+  { id: "past", label: "How did I rate my last one?", run: () => pastReview() },
 ];
-const DONE = { label: "That's all I needed", done: true, run: () => finish() };
+const DONE = { label: "That's everything, thanks", done: true, run: () => finish() };
+
+// The size the fit check lands on, for the wrap-up recap.
+let recommendedSize = null;
 
 // After each answer: the topics not covered yet, and a way out.
 const nextChoices = () => [...TOPICS.filter((t) => !covered.has(t.id)), DONE];
 const t = (text) => ({ text });
+// While the chat plays itself the shopper just asks the next thing; when they're
+// steering, the store checks in after each answer.
+const checkIn = () => (auto ? [] : [t("Anything else on your mind?")]);
 
+// ---------- The seller ----------
+function trustSeller() {
+  covered.add("trust");
+  send(
+    [
+      t(`Totally legit. It's sold by ${SELLER.name} themselves, not a reseller.`),
+      { kind: "facts", title: "Where this shirt comes from", rows: SELLER.provenance(shopper.color) },
+      t("Little tip: the batch code is on the label inside the collar, so you can match it to your receipt."),
+      ...(auto ? [] : [t(`Want to see how reliable ${SELLER.name} is?`)]),
+    ],
+    [
+      { label: "Yes, show me", run: () => sellerRecord() },
+      { label: "No, I'm good", run: () => send([t("Sure thing. Anything else on your mind?")], nextChoices()) },
+    ],
+  );
+}
+
+function sellerRecord() {
+  covered.add("trust");
+  send(
+    [
+      t("Pretty solid track record over the last year:"),
+      { kind: "facts", title: `${SELLER.name} as a seller`, rows: SELLER.reliability },
+      t("And if anything's off, they reply within a day. Most issues end in a refund or exchange."),
+      ...checkIn(),
+    ],
+    nextChoices(),
+  );
+}
+
+function conditionAnswer() {
+  send(
+    [
+      t("Yep, brand new. Not used or refurbished, so there's no condition to grade."),
+      t("And returns are free if it's not right."),
+      ...checkIn(),
+    ],
+    nextChoices(),
+  );
+}
+
+// ---------- The product ----------
+function lookAndFeel() {
+  covered.add("feel");
+  const pics = photosFor(shopper.color);
+  send(
+    [
+      t("It's a fine-gauge knit: soft, light and breathable, with a bit of stretch."),
+      {
+        kind: "photos",
+        photos: pics.slice(0, 3).map((src, i) => ({ src, label: `${PRODUCT.name}, photo ${i + 1}` })),
+      },
+      t(
+        shopper.color === "Jet Black"
+          ? "Jet Black is a deep, flat black with a cream open collar."
+          : "Sheer White is more of a warm off-white than a bright white, with a black open collar.",
+      ),
+      t("Up close the weave has a subtle waffle texture, and there's a little script embroidered on the sleeve."),
+      ...checkIn(),
+    ],
+    nextChoices(),
+  );
+}
+
+function othersSay() {
+  covered.add("others");
+  send(
+    [
+      t("It only dropped last week, so there are just a few reviews. Here's the gist:"),
+      { kind: "summary", likes: OTHERS.likes, concerns: seriousConcerns.map((c) => c.text) },
+      t(seriousConcerns.length ? "Mostly good, but worth keeping that in mind." : "No real complaints so far."),
+      ...checkIn(),
+    ],
+    nextChoices(),
+  );
+}
+
+function durability() {
+  covered.add("durable");
+  send(
+    [
+      t("Honestly? It launched last week, so there hasn't been enough time to know how it holds up."),
+      t(`It's the same knit family as your ${PAST.name} though, and you said that collar still sat flat after loads of washes.`),
+      t("To keep it nice: wash cold, inside out, and dry it flat."),
+      ...checkIn(),
+    ],
+    nextChoices(),
+  );
+}
+
+// ---------- The fit ----------
 function fitCheck() {
   covered.add("fit");
   send(
     [
-      t(`You bought the ${PAST.name} in ${PAST.color}, size ${PAST.size}, back in ${PAST.when}.`),
+      t(`Let's compare it with something you already own. You got the ${PAST.name} in ${PAST.color}, size ${PAST.size}, back in ${PAST.when}.`),
       { kind: "photos", photos: [{ src: PAST.photo, label: `${PAST.name} in ${PAST.color}` }] },
-      t("How did it fit you?"),
+      t("How did that one fit you?"),
     ],
     [
       { label: "Perfect fit", run: () => fitAdvice(0) },
@@ -244,19 +341,19 @@ function fitCheck() {
 
 function fitAdvice(by) {
   const rec = sizeStep(PAST.size, by);
+  recommendedSize = rec;
   const lines = [
-    t("The Monaco has the same regular cut as the Urban Edge, so it's an easy comparison."),
+    t("Same regular cut on both, so that's a good guide."),
     t(
       by === 0
-        ? `Go with ${rec}. It should sit just like your Urban Edge: close on the shoulders, straight through the body.`
+        ? `Stick with ${rec}. It'll sit just like your Urban Edge: close on the shoulders, straight through the body.`
         : by > 0
-          ? `I'd size up to ${rec}. The knit has a little stretch, but not enough to fix a snug fit.`
-          : `I'd size down to ${rec}. This knit relaxes slightly after a few wears, so a loose fit gets looser.`,
+          ? `I'd go up to ${rec}. The knit has a bit of stretch, but not enough to fix a snug fit.`
+          : `I'd go down to ${rec}. This knit relaxes a little with wear, so loose gets looser.`,
     ),
+    t(shopper.size !== rec ? `You've got ${shopper.size} picked on the product page, so switch it to ${rec}.` : "That's the size you already picked, so you're set."),
+    ...checkIn(),
   ];
-  if (shopper.size !== rec) lines.push(t(`You've got ${shopper.size} selected on the product page, so you may want to switch it to ${rec}.`));
-  else lines.push(t(`That's the size you already picked, so you're set.`));
-  lines.push(t("Anything else you'd like to know?"));
   send(lines, nextChoices());
 }
 
@@ -264,108 +361,34 @@ function pastReview() {
   covered.add("past");
   send(
     [
-      t(`Here's what you said about the ${PAST.name} in ${PAST.when}:`),
+      t(`Here's what you said about the ${PAST.name}:`),
       { kind: "review", text: PAST.review, who: `Your review · ${PAST.color}, size ${PAST.size}` },
-      t("The Monaco uses the same collar construction, so it should hold its shape the same way."),
-      t("The sleeves are cut a touch roomier on this one, which should help with the snug feeling you mentioned."),
-      t("Anything else you'd like to know?"),
+      t("Good news: the sleeves are cut a touch roomier on this one, so that snug feeling shouldn't come back."),
+      ...checkIn(),
     ],
     nextChoices(),
   );
 }
 
-function lookAndFeel() {
-  covered.add("feel");
-  const pics = photosFor(shopper.color);
-  send(
-    [
-      t("It's a fine-gauge textured knit. Soft, light and breathable, with a little stretch."),
-      {
-        kind: "photos",
-        photos: pics.slice(0, 3).map((src, i) => ({ src, label: `${PRODUCT.name}, photo ${i + 1}` })),
-      },
-      t(
-        shopper.color === "Jet Black"
-          ? "Jet Black is a deep, flat black, with a cream open collar for contrast."
-          : "Sheer White is a warm off-white rather than a stark white, with a black open collar for contrast.",
-      ),
-      t("There's a small embroidered script on the left sleeve. Up close the weave has a subtle waffle texture."),
-      t("Anything else you'd like to know?"),
-    ],
-    nextChoices(),
-  );
-}
-
-function othersSay() {
-  covered.add("others");
-  send(
-    [
-      t("It only launched last week, so there are just a few reviews so far. Here's the gist:"),
-      { kind: "summary", likes: OTHERS.likes, concerns: seriousConcerns.map((c) => c.text) },
-      t(seriousConcerns.length ? "Mostly positive, but keep that in mind." : "So far, nobody has reported a real problem with it."),
-      t("Anything else you'd like to know?"),
-    ],
-    nextChoices(),
-  );
-}
-
-function trustSeller() {
-  covered.add("trust");
-  send(
-    [
-      t(`Yes, it's genuine. It's sold directly by ${SELLER.name}, the brand that makes it, not a reseller.`),
-      { kind: "facts", title: "Where this shirt comes from", rows: SELLER.provenance(shopper.color) },
-      t("The batch code is printed on the woven label inside the collar, so you can match it to your receipt when it arrives."),
-      t(`Want to see how reliable ${SELLER.name} is as a seller?`),
-    ],
-    [
-      { label: "Yes, show me", run: () => sellerRecord() },
-      { label: "No, I'm good", run: () => send([t("Sure. Anything else you'd like to know?")], nextChoices()) },
-    ],
-  );
-}
-
-function sellerRecord() {
-  covered.add("trust");
-  send(
-    [
-      { kind: "facts", title: `${SELLER.name} as a seller, last 12 months`, rows: SELLER.reliability },
-      t("If something goes wrong, you message the store, they reply within a day, and most disputes end in a refund or exchange."),
-      t("This shirt is brand new, not used or refurbished, so there's no condition grade or flaw photos to check. Returns are free if it isn't right."),
-      t("Anything else you'd like to know?"),
-    ],
-    nextChoices(),
-  );
-}
-
-function conditionAnswer() {
-  send(
-    [
-      t("It's brand new, not used or refurbished, so there's no condition grade or flaw photos to check."),
-      t("If it arrives with any flaw, returns are free."),
-      t("Anything else you'd like to know?"),
-    ],
-    nextChoices(),
-  );
-}
-
-function durability() {
-  covered.add("durable");
-  send(
-    [
-      t("Honest answer: this shirt was launched last week, so there hasn't been enough time to gather data on how it holds up."),
-      t(`What I can tell you: it's the same knit family as your ${PAST.name}, and you said its collar still sat flat after lots of washes.`),
-      t("To keep it in shape: wash cold, inside out, and dry it flat rather than hanging it."),
-      t("Anything else you'd like to know?"),
-    ],
-    nextChoices(),
-  );
-}
-
+// ---------- Wrap-up ----------
 function finish() {
-  send([t("Glad I could help. Your product page is ready whenever you are.")], [
-    { label: "Back to the product", done: true, final: true, run: () => closeWith("trust-complete") },
-  ]);
+  const recap = [
+    covered.has("trust") && "it's genuine and from a reliable seller",
+    covered.has("feel") && "the knit is soft and breathable",
+    recommendedSize && `${recommendedSize} is your size`,
+  ].filter(Boolean);
+  // "a and b", or "a, b, and c"
+  const list =
+    recap.length > 2
+      ? `${recap.slice(0, -1).join(", ")}, and ${recap.at(-1)}`
+      : recap.join(" and ");
+  send(
+    [
+      ...(recap.length ? [t(`Quick recap: ${list}.`)] : []),
+      t("Hope it's the one! Your product page is ready whenever you are."),
+    ],
+    [{ label: "Back to the product", done: true, final: true, run: () => closeWith("trust-complete") }],
+  );
 }
 
 // Typed questions are routed to the closest topic.
@@ -441,10 +464,10 @@ addEventListener("keydown", (e) => e.key === "Escape" && !viewer.hidden && close
 (function open() {
   document.getElementById("chatProduct").textContent = PRODUCT.name;
   send(
-    [t("Let's seek the truth."), t("Do you want to verify the seller or run a fit check?")],
+    [t("Hey! Let's seek the truth about this shirt."), t("Want to start with the seller, or jump straight to the fit?")],
     [
-      { label: "Verify the seller", run: () => trustSeller() },
-      { label: "Run a fit check", run: () => fitCheck() },
+      { label: "Start with the seller", run: () => trustSeller() },
+      { label: "Check my fit", run: () => fitCheck() },
     ],
   );
 })();
@@ -454,15 +477,19 @@ addEventListener("keydown", (e) => e.key === "Escape" && !viewer.hidden && close
 const SHOPPER_READ_MS = 900;
 const SHOPPER_TYPE_MS = 800;
 const AUTOPLAY = [
-  { text: "Verify the seller", run: () => trustSeller() },
-  { text: "Yes, show me", run: () => sellerRecord() },
-  { text: "Now run a fit check", run: () => fitCheck() },
+  // The seller
+  { text: "Let's start with the seller. Is it legit?", run: () => trustSeller() },
+  { text: "Nice. And do their orders actually show up on time?", run: () => sellerRecord() },
+  { text: "Is it brand new though?", run: () => conditionAnswer() },
+  // The product
+  { text: "Cool. So what's the shirt actually like?", run: () => lookAndFeel() },
+  { text: "What are people saying about it?", run: () => othersSay() },
+  { text: "Will it last?", run: () => durability() },
+  // The fit
+  { text: "Okay, last thing. What size should I get?", run: () => fitCheck() },
   { text: "It was a bit tight", run: () => fitAdvice(1) },
-  { text: "How did I rate it back then?", run: () => pastReview() },
-  { text: "How does this one look and feel?", run: () => lookAndFeel() },
-  { text: "What are others saying about it?", run: () => othersSay() },
-  { text: "Is it durable?", run: () => durability() },
-  { text: "That's all I needed, thanks", run: () => finish() },
+  { text: "How did I rate that one again?", run: () => pastReview() },
+  { text: "That's everything, thanks!", run: () => finish() },
 ];
 
 let shopperTyping = null;
