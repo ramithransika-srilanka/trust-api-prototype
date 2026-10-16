@@ -47,12 +47,12 @@ const SELLER = {
   name: "Carnage",
   madeIn: "Sri Lanka",
   returnRate: "2%",
-  // [figure, what it means]
+  // [what it measures, figure]
   reliability: [
-    ["96.8%", "of orders shipped on time"],
-    ["0.6%", "of orders not as described"],
-    ["2.4 days", "on average to settle a dispute"],
-    ["93%", "of disputes refunded or exchanged"],
+    ["Orders shipped on time", "96.8%"],
+    ["Orders not as described", "0.6%"],
+    ["Avg. time to settle a dispute", "2.4 days"],
+    ["Disputes refunded or swapped", "93%"],
   ],
   // The shopper's friends who have recommended this seller.
   recommendedBy: ["Shamith", "Wije"],
@@ -122,13 +122,13 @@ function render(m) {
   if (m.kind === "stats") {
     const card = el("div", "review stats enter");
     card.appendChild(el("p", "review__heading", m.title));
-    const grid = el("dl", "stats__grid");
-    m.rows.forEach(([value, label]) => {
-      const tile = el("div", "stats__tile");
-      tile.append(el("dt", "stats__value", value), el("dd", "stats__label", label));
-      grid.appendChild(tile);
+    const list = el("dl", "stats__rows");
+    m.rows.forEach(([label, value]) => {
+      const row = el("div", "stats__row");
+      row.append(el("dt", "stats__label", label), el("dd", "stats__value", value));
+      list.appendChild(row);
     });
-    card.appendChild(grid);
+    card.appendChild(list);
     return card;
   }
   if (m.kind === "summary") {
