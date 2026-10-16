@@ -141,12 +141,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .review__meta { margin: 4px 0 0; font-size: 12px; line-height: 16px; color: var(--muted); }
 .review__heading { margin: 8px 0 4px; font-size: 13px; font-weight: 600; }
 .review__heading:first-child { margin-top: 0; }
-/* A small fact sheet: label on the left, value on the right. */
-.facts { width: 80%; }
-.facts__title { margin-top: 0; }
-.facts__rows { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin: 0; }
-.facts__rows dt { color: var(--muted); }
-.facts__rows dd { margin: 0; text-align: right; font-weight: 500; }
+/* Key figures: a 2x2 grid of tiles, the figure large with what it means underneath. */
+.stats { width: 80%; }
+.stats .review__heading { margin-bottom: 8px; }
+.stats__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+.stats__tile { padding: 12px; border-radius: 12px; background: #fff; }
+.stats__value { font-size: 20px; line-height: 24px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.stats__label { margin: 4px 0 0; font-size: 12px; line-height: 16px; color: var(--muted); }
 .review__list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
 .review__list li { position: relative; padding-left: 20px; }
 .review__list li::before {

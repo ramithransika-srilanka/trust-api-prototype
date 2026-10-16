@@ -47,11 +47,12 @@ const SELLER = {
   name: "Carnage",
   madeIn: "Sri Lanka",
   returnRate: "2%",
+  // [figure, what it means]
   reliability: [
-    ["On-time shipping", "96.8% of orders"],
-    ["Not as described", "0.6% of orders"],
-    ["Disputes settled in", "2.4 days avg."],
-    ["Refund or exchange", "93% of disputes"],
+    ["96.8%", "of orders shipped on time"],
+    ["0.6%", "of orders not as described"],
+    ["2.4 days", "on average to settle a dispute"],
+    ["93%", "of disputes refunded or exchanged"],
   ],
   // The shopper's friends who have recommended this seller.
   recommendedBy: ["Shamith", "Wije"],
@@ -118,12 +119,16 @@ function render(m) {
     card.append(el("p", "review__text", `“${m.text}”`), el("p", "review__meta", m.who));
     return card;
   }
-  if (m.kind === "facts") {
-    const card = el("div", "review facts enter");
-    card.appendChild(el("p", "review__heading facts__title", m.title));
-    const dl = el("dl", "facts__rows");
-    m.rows.forEach(([k, v]) => dl.append(el("dt", "", k), el("dd", "", v)));
-    card.appendChild(dl);
+  if (m.kind === "stats") {
+    const card = el("div", "review stats enter");
+    card.appendChild(el("p", "review__heading", m.title));
+    const grid = el("dl", "stats__grid");
+    m.rows.forEach(([value, label]) => {
+      const tile = el("div", "stats__tile");
+      tile.append(el("dt", "stats__value", value), el("dd", "stats__label", label));
+      grid.appendChild(tile);
+    });
+    card.appendChild(grid);
     return card;
   }
   if (m.kind === "summary") {
@@ -228,7 +233,7 @@ function trustSeller() {
   send(
     [
       t("Looks legit. Pretty solid track record over the last few months:"),
-      { kind: "facts", title: `${SELLER.name} as a seller`, rows: SELLER.reliability },
+      { kind: "stats", title: `${SELLER.name} as a seller`, rows: SELLER.reliability },
       t("And if anything's off, they reply within a day. Most issues end in a refund or exchange."),
       t(`It's made in ${SELLER.madeIn} by ${SELLER.name} themselves.`),
       t(`Also, ${friends} recently recommended ${SELLER.name} as a seller you can trust.`),
