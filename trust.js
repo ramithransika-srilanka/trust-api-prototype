@@ -437,21 +437,14 @@ log.addEventListener("keydown", (e) => {
 document.getElementById("viewerBack").addEventListener("click", closeViewer);
 addEventListener("keydown", (e) => e.key === "Escape" && !viewer.hidden && closeViewer());
 
-// ---------- Opening: straight to the fit check question ----------
+// ---------- Opening: verify the seller, or run a fit check ----------
 (function open() {
   document.getElementById("chatProduct").textContent = PRODUCT.name;
   send(
+    [t("Let's seek the truth."), t("Do you want to verify the seller or run a fit check?")],
     [
-      t("Do you want me to run a fit check?"),
-      t("I can compare this shirt with clothes you've bought before and recommend the best fit."),
-    ],
-    [
-      { label: "Yes", run: () => fitCheck() },
-      {
-        label: "No thanks",
-        run: () =>
-          send([t("No problem. What would you like to know about it?")], nextChoices().filter((c) => !c.done)),
-      },
+      { label: "Verify the seller", run: () => trustSeller() },
+      { label: "Run a fit check", run: () => fitCheck() },
     ],
   );
 })();
@@ -461,13 +454,13 @@ addEventListener("keydown", (e) => e.key === "Escape" && !viewer.hidden && close
 const SHOPPER_READ_MS = 900;
 const SHOPPER_TYPE_MS = 800;
 const AUTOPLAY = [
-  { text: "Yes", run: () => fitCheck() },
+  { text: "Verify the seller", run: () => trustSeller() },
+  { text: "Yes, show me", run: () => sellerRecord() },
+  { text: "Now run a fit check", run: () => fitCheck() },
   { text: "It was a bit tight", run: () => fitAdvice(1) },
   { text: "How did I rate it back then?", run: () => pastReview() },
   { text: "How does this one look and feel?", run: () => lookAndFeel() },
   { text: "What are others saying about it?", run: () => othersSay() },
-  { text: "Is it genuine? Can I trust the seller?", run: () => trustSeller() },
-  { text: "Yes, show me", run: () => sellerRecord() },
   { text: "Is it durable?", run: () => durability() },
   { text: "That's all I needed, thanks", run: () => finish() },
 ];
