@@ -62,6 +62,8 @@ const SELLER = {
     ["Disputes settled in", "2.4 days avg."],
     ["Refund or exchange", "93% of disputes"],
   ],
+  // Friends of the shopper who have recommended this seller as trustworthy.
+  friendsRecommending: 2,
 };
 
 const SIZES = ["S", "M", "L", "XL", "XXL"];
@@ -256,6 +258,7 @@ function sellerRecord() {
       t("Pretty solid track record over the last year:"),
       { kind: "facts", title: `${SELLER.name} as a seller`, rows: SELLER.reliability },
       t("And if anything's off, they reply within a day. Most issues end in a refund or exchange."),
+      t(`Oh, and ${SELLER.friendsRecommending} of your friends have recommended ${SELLER.name} as a seller you can trust.`),
       ...checkIn(),
     ],
     nextChoices(),
@@ -373,7 +376,7 @@ function pastReview() {
 // ---------- Wrap-up ----------
 function finish() {
   const recap = [
-    covered.has("trust") && "it's genuine and from a reliable seller",
+    covered.has("trust") && "it's genuine and from a reliable seller your friends vouch for",
     covered.has("feel") && "the knit is soft and breathable",
     recommendedSize && `${recommendedSize} is your size`,
   ].filter(Boolean);
@@ -396,7 +399,7 @@ function finish() {
 // used / condition questions get the condition answer, the rest to authenticity.
 // A word ending in "!" must match as a whole phrase ("is it real" but not "is it really").
 const ROUTES = [
-  { run: () => sellerRecord(), words: ["deliver", "shipping", "ship it", "arrive", "on time", "dispute", "refund", "return", "complain", "reliab", "not as described"] },
+  { run: () => sellerRecord(), words: ["deliver", "shipping", "ship it", "arrive", "on time", "dispute", "refund", "return", "complain", "reliab", "not as described", "friend", "recommend"] },
   { run: () => conditionAnswer(), words: ["used", "refurb", "second hand", "secondhand", "condition", "flaw", "defect", "damage", "scratch"] },
   { run: () => trustSeller(), words: ["genuine", "is it real!", "real one", "real product", "fake", "authentic", "original", "counterfeit", "seller", "trust", "legit", "scam", "batch", "origin", "made in", "where is it made", "supply"] },
   { run: () => durability(), words: ["durab", "last", "wash", "shrink", "pill", "fade", "hold up", "long"] },
@@ -480,7 +483,7 @@ const AUTOPLAY = [
   // The seller
   { text: "Let's start with the seller. Is it legit?", run: () => trustSeller() },
   { text: "Nice. And do their orders actually show up on time?", run: () => sellerRecord() },
-  { text: "Is it brand new though?", run: () => conditionAnswer() },
+  { text: "Oh nice, if my friends trust them that helps a lot. Is it brand new though?", run: () => conditionAnswer() },
   // The product
   { text: "Cool. So what's the shirt actually like?", run: () => lookAndFeel() },
   { text: "What are people saying about it?", run: () => othersSay() },
